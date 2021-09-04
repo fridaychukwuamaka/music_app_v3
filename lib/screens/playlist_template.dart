@@ -293,65 +293,62 @@ class _PlaylistTemplatePageState extends State<PlaylistTemplatePage>
                   child: Column(
                     children: <Widget>[
                       ValueListenableBuilder(
-                          valueListenable: Hive.box('playlist').listenable(),
-                          builder: (context, value, child) {
-                            var playlist;
-                            final temp = value.get('playlist');
-                            if (temp != null) {
-                              playlist = json.decode(temp);
-                            }
-                            print('playlist');
+                        valueListenable: Hive.box('playlist').listenable(),
+                        builder: (context, value, child) {
+                          var playlist;
+                          final temp = value.get('playlist');
+                          if (temp != null) {
+                            playlist = json.decode(temp);
+                          }
+                          print('playlist');
 
-                            getSongFromPlaylistId(
-                                playlist[widget.playlistIndex]['id']);
+                          getSongFromPlaylistId(
+                              playlist[widget.playlistIndex]['id']);
 
-                            return Container(
-                              height: MediaQuery.of(context).size.height - 369,
-                              width: MediaQuery.of(context).size.width,
-                              child: StreamBuilder<MediaItem>(
-                                stream: AudioService.currentMediaItemStream,
-                                builder: (context, snapshot) {
-                                  return ListView.builder(
-                                    padding: EdgeInsets.only(
-                                        top: 40,
-                                        left: 20,
-                                        right: 20,
-                                        bottom: 20),
-                                    itemCount: songList.length,
-                                    itemBuilder:
-                                        (BuildContext context, int index) {
-                                      return MusicListItem(
-                                        onClick: () {
-                                          playSong(songList, index);
-                                        },
-                                        subtitleTextColor: Colors.black,
-                                        titleTextColor: Colors.black,
-                                        title: songList[index].title,
-                                        artist: songList[index].artist,
-                                        color: Color(0xFFE6E6E6),
-                                        iconColor: Color(0xFF5C5C5C),
-                                        albumArt: songList[index]
-                                                        .albumArtwork !=
-                                                    null &&
-                                                songList[index].albumArtwork !=
-                                                    null
-                                            ? songList[index].albumArtwork
-                                            : null,
-                                        song: songList[index],
-                                        songIndex: index,
-                                        page: widget.typeOfTemplate,
-                                        textAreaLength:
-                                            MediaQuery.of(context).size.width -
-                                                175,
-                                        thePlaying: snapshot.data?.id ==
-                                            songList[index].filePath,
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            );
-                          }),
+                          return Container(
+                            height: MediaQuery.of(context).size.height - 369,
+                            width: MediaQuery.of(context).size.width,
+                            child: StreamBuilder<MediaItem>(
+                              stream: AudioService.currentMediaItemStream,
+                              builder: (context, snapshot) {
+                                return ListView.builder(
+                                  padding: EdgeInsets.only(
+                                      top: 40, left: 20, right: 20, bottom: 20),
+                                  itemCount: songList.length,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    return MusicListItem(
+                                      onClick: () {
+                                        playSong(songList, index);
+                                      },
+                                      subtitleTextColor: Colors.black,
+                                      titleTextColor: Colors.black,
+                                      title: songList[index].title,
+                                      artist: songList[index].artist,
+                                      color: Color(0xFFE6E6E6),
+                                      iconColor: Color(0xFF5C5C5C),
+                                      albumArt: songList[index].albumArtwork !=
+                                                  null &&
+                                              songList[index].albumArtwork !=
+                                                  null
+                                          ? songList[index].albumArtwork
+                                          : null,
+                                      song: songList[index],
+                                      songIndex: index,
+                                      page: widget.typeOfTemplate,
+                                      textAreaLength:
+                                          MediaQuery.of(context).size.width -
+                                              175,
+                                      thePlaying: snapshot.data?.id ==
+                                          songList[index].filePath,
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),

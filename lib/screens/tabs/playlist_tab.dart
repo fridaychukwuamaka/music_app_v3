@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:music_app_v3/models/playlist_data.dart';
 import 'package:music_app_v3/screens/playlist_template.dart';
-import 'package:music_app_v3/screens/template.dart';
 import 'package:music_app_v3/services/playlist.dart';
 import 'package:music_app_v3/widgets/album_item.dart';
 import '../../constant.dart';
@@ -43,7 +42,7 @@ class _PlaylistTabState extends State<PlaylistTab> {
   }
 
   ///This function get list of songs from a playlist
-    Future<List<SongInfo>> getSongFromPlaylist(String playlistId) async {
+  Future<List<SongInfo>> getSongFromPlaylist(String playlistId) async {
     PlaylistData temp = playlist.singleWhere((e) => e.id == playlistId);
     var memberIds = temp.memberIds;
     if (memberIds.isEmpty) return [];
@@ -74,14 +73,15 @@ class _PlaylistTabState extends State<PlaylistTab> {
           itemCount: playlist.length,
           padding: EdgeInsets.only(left: 30, right: 30, top: 25, bottom: 25),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              childAspectRatio: 0.75,
-              crossAxisCount: 2,
-              crossAxisSpacing: 25,
-              mainAxisSpacing: 25),
+            childAspectRatio: 0.75,
+            crossAxisCount: 2,
+            crossAxisSpacing: 25,
+            mainAxisSpacing: 25,
+          ),
           itemBuilder: (context, index) {
             return GestureDetector(
               onTap: () async {
-                  List<SongInfo> songs =
+                List<SongInfo> songs =
                     await getSongFromPlaylist(playlist[index].id);
 
                 Navigator.of(context).push(
@@ -104,7 +104,6 @@ class _PlaylistTabState extends State<PlaylistTab> {
                 playButton: true,
                 item: 2,
                 typeOfAlbumItem: 'playlist',
-               
                 onPressed: () async {
                   // playSong(index);
                 },

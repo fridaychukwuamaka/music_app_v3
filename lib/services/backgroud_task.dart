@@ -77,9 +77,11 @@ class MyBackgroundTask extends BackgroundAudioTask {
     final session = await AudioSession.instance;
     await session.configure(AudioSessionConfiguration.speech());
     // Broadcast media item changes.
-    _player.currentIndexStream.listen((index) {
+
+    /*   _player.currentIndexStream.listen((index) {
       if (index != null) AudioServiceBackground.setMediaItem(_queue[index]);
-    });
+    }); */
+
     // Propagate all events from the audio player to AudioService clients.
     _eventSubscription = _player.playbackEventStream.listen((event) {
       _broadcastState();

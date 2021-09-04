@@ -36,12 +36,7 @@ class _MyHomePageState extends State<MyHomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          print(AudioService.running);
-        },
-        child: Icon(Icons.mouse),
-      ),
+     
       body: SafeArea(
         child: Column(
           children: <Widget>[

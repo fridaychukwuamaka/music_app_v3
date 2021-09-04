@@ -6,7 +6,6 @@ import 'package:flutter_audio_query/flutter_audio_query.dart';
 
 // create a FlutterAudioQuery instance.
 
-
 class SongTab extends StatefulWidget {
   const SongTab({
     Key key,
@@ -53,12 +52,11 @@ class _SongTabState extends State<SongTab> {
             textAreaLength: MediaQuery.of(context).size.width - 229,
             color: Color(0xFFE6E6E6),
             iconColor: Color(0xFF5C5C5C),
-            thePlaying:true,
+            thePlaying: true,
             title: songs[index].title,
             albumArt: songs[index].albumArtwork,
             artist: songs[index].artist,
             song: songs[index],
-            
             songIndex: index,
             songList: songs,
             onClick: () {

@@ -46,7 +46,7 @@ class _NowPlayingPageState extends State<NowPlayingPage>
   }
 }
 
-String currentAlbumArt = AudioService.currentMediaItem.artUri.path;
+String currentAlbumArt = AudioService?.currentMediaItem?.artUri?.path ?? '';
 MediaItem mediaItem = AudioService.currentMediaItem;
 
 class NowplayingMini extends StatelessWidget {
