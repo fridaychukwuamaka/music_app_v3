@@ -7,7 +7,6 @@ import 'package:audio_service/audio_service.dart';
 import 'package:path_provider/path_provider.dart';
 import './services/music_service.dart';
 
-
 Future<void> initHive() async {
   final appDocumentDir = await getApplicationDocumentsDirectory();
   Hive.init(appDocumentDir.path);
@@ -33,7 +32,7 @@ Future<void> main() async {
       ),
     );
   } catch (e) {
-    print("error occurd in main: $e");
+    //print("error occurd in main: $e");
   }
 }
 

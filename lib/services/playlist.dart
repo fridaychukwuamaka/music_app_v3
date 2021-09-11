@@ -110,7 +110,7 @@ class Playlist {
   }
 
   List<PlaylistData> fromJson(List playlist) {
-    //print('list ${playlist[0]['memberIds'].runtimeType}');
+    
     if (playlist.isEmpty) return [];
     return List.from(playlist.map(
       (e) => PlaylistData(

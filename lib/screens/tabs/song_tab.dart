@@ -29,15 +29,17 @@ class _SongTabState extends State<SongTab> {
     setState(() {
       songs = temp;
     });
-    print(songs.last);
+
+    //print(songs[9].hashCode);
   }
 
   ///this function plays the selected song
   playSong(List<SongInfo> song, int index) async {
-    var temp = kSongInfoToMediaItem(song[index], index);
+    var temp = await kSongInfoToMediaItem(song[index], index);
     await AudioService.playMediaItem(temp);
     await AudioService.updateMediaItem(temp);
     var list = kSongInfoListToMediaItemList(song, currentSongIndex: index);
+    list[index] = temp;
     await AudioService.updateQueue(list);
   }
 
@@ -48,23 +50,30 @@ class _SongTabState extends State<SongTab> {
         itemCount: songs.length,
         padding: EdgeInsets.only(left: 30, right: 15, top: 25, bottom: 10),
         itemBuilder: (BuildContext context, int index) {
-          return MusicListItem(
-            textAreaLength: MediaQuery.of(context).size.width - 229,
-            color: Color(0xFFE6E6E6),
-            iconColor: Color(0xFF5C5C5C),
-            thePlaying: true,
-            title: songs[index].title,
-            albumArt: songs[index].albumArtwork,
-            artist: songs[index].artist,
-            song: songs[index],
-            songIndex: index,
-            songList: songs,
-            onClick: () {
-              playSong(songs, index);
-            },
-            subtitleTextColor: Colors.black,
-            titleTextColor: Colors.black,
-          );
+          return StreamBuilder<MediaItem>(
+              stream: AudioService.currentMediaItemStream,
+              builder: (context, snapshot) {
+                MediaItem currentMediaItem = snapshot?.data;
+                //print(snapshot.data);
+                return MusicListItem(
+                  textAreaLength: MediaQuery.of(context).size.width - 229,
+                  color: Color(0xFFE6E6E6),
+                  iconColor: Color(0xFF5C5C5C),
+                  thePlaying:
+                      kIfSongIsPlaying(currentMediaItem, songs[index].filePath),
+                  title: songs[index].title,
+                  albumArt: songs[index].albumArtwork,
+                  artist: songs[index].artist,
+                  song: songs[index],
+                  songIndex: index,
+                  songList: songs,
+                  onClick: () {
+                    playSong(songs, index);
+                  },
+                  subtitleTextColor: Colors.black,
+                  titleTextColor: Colors.black,
+                );
+              });
         },
       );
     } else {

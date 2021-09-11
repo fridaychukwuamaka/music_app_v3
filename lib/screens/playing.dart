@@ -1,15 +1,14 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
-import 'package:hive/hive.dart';
 import 'package:music_app_v3/screens/now_playing_page.dart';
 import '../constant.dart';
 import '../widgets/music_slider.dart';
 import 'package:rxdart/rxdart.dart';
-
 
 class PlayingPage extends StatefulWidget {
   static String id = '/f';
@@ -26,8 +25,8 @@ class PlayingPage extends StatefulWidget {
 }
 
 class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
-   int currentIndex;
-   SongInfo currentSongDetail;
+  int currentIndex;
+  SongInfo currentSongDetail;
 
   double sliderVal = 0.0;
   bool changing = false;
@@ -35,14 +34,14 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
   bool favorite = false;
   bool singleLoop = false;
   bool loopAll = false;
-   DateTime currentPosition;
+  DateTime currentPosition;
   IconData loopIcon = Icons.repeat;
   int t = 0;
   bool shuffle = false;
-   MediaItem currentMediaItem;
+  MediaItem currentMediaItem;
 
-   MediaItem music;
-   MediaItem shuffleMusic;
+  MediaItem music;
+  MediaItem shuffleMusic;
   int _count = 0;
 
   Future<List<SongInfo>> getSongFromPlaylist(PlaylistInfo playlist) async {
@@ -51,13 +50,8 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
     return song;
   }
 
-   
-
   @override
   Widget build(BuildContext context) {
-    print('_count: $_count');
-    _count++;
-
     return Scaffold(
       //backgroundColor: Colors.transparent,
       body: SafeArea(
@@ -70,30 +64,35 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                   stream: AudioService.currentMediaItemStream,
                   initialData: AudioService.currentMediaItem,
                   builder: (context, snapshot) {
-                    return Positioned(
-                      top: 0,
-                      child: snapshot.data.artUri != null
-                          ? Image.file(
-                              File(
-                                snapshot.data.artUri.path,
-                              ),
-                              height: MediaQuery.of(context).size.height,
-                              width: MediaQuery.of(context).size.width,
-                              fit: BoxFit.cover,
-                              filterQuality: FilterQuality.none,
-                              gaplessPlayback: true,
-                            )
-                          : Container(
-                              color: Colors.black,
-                              height: MediaQuery.of(context).size.height,
-                              width: MediaQuery.of(context).size.width,
-                              child: Center(
-                                child: Icon(
-                                  FeatherIcons.music,
-                                  color: Colors.white,
-                                ),
-                              )),
-                    );
+                    return FutureBuilder<Uint8List>(
+                        future: FlutterAudioQuery().getArtwork(
+                          type: ResourceType.SONG,
+                          id: snapshot.data.extras['songId'],
+                        ),
+                        builder: (context, snapshot) {
+                          return Positioned(
+                            top: 0,
+                            child: snapshot.hasData && snapshot.data.isNotEmpty
+                                ? Image.memory(
+                                    snapshot.data,
+                                    height: MediaQuery.of(context).size.height,
+                                    width: MediaQuery.of(context).size.width,
+                                    fit: BoxFit.cover,
+                                    filterQuality: FilterQuality.medium,
+                                    gaplessPlayback: true,
+                                  )
+                                : Container(
+                                    color: Colors.black,
+                                    height: MediaQuery.of(context).size.height,
+                                    width: MediaQuery.of(context).size.width,
+                                    child: Center(
+                                      child: Icon(
+                                        FeatherIcons.music,
+                                        color: Colors.white,
+                                      ),
+                                    )),
+                          );
+                        });
                   }),
               Container(
                 decoration: BoxDecoration(color: Color.fromRGBO(0, 0, 0, 0.61)),
@@ -178,7 +177,7 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                         final PlaybackState playbackState =
                             sliderState.playbackState;
                         final Duration position = sliderState.position;
-
+                      
                         return Column(
                           children: [
                             MusicSlider(
@@ -189,14 +188,8 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                                 }
                               },
                               onChangeEnd: (val) async {
-                                print(val.toInt());
                                 AudioService.seekTo(
                                     Duration(milliseconds: val.toInt()));
-                                print(
-                                    AudioService.playbackState.currentPosition);
-                                /* await Provider.of<MusicService>(context)
-                                .seek(val.toInt());
-                                */
 
                                 await Future.delayed(
                                   Duration(milliseconds: 1000),
@@ -235,20 +228,7 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
                           IconButton(
-                            onPressed: () async {
-                              /*  // print(AudioService.queue.last.title);
-                                    if (shuffleMode == '1') {
-                                      Provider.of<MusicService>(context,
-                                              listen: false)
-                                          .shuffleSong(
-                                              AudioServiceShuffleMode.none);
-                                    } else {
-                                      Provider.of<MusicService>(context,
-                                              listen: false)
-                                          .shuffleSong(
-                                              AudioServiceShuffleMode.all);
-                                    } */
-                            },
+                            onPressed: () async {},
                             icon: Icon(
                               Icons.shuffle,
                               color:
@@ -260,28 +240,7 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                             ),
                           ),
                           IconButton(
-                            onPressed: () {
-                              /* print(loopMode);
-                              switch (loopMode) {
-                                     case '0':
-                                      Provider.of<MusicService>(context,
-                                              listen: false)
-                                          .loopSong(AudioServiceRepeatMode.all);
-                                      break;
-                                    case '1':
-                                      Provider.of<MusicService>(context,
-                                              listen: false)
-                                          .loopSong(AudioServiceRepeatMode.one);
-                                      break;
-                                    case '2':
-                                      Provider.of<MusicService>(context,
-                                              listen: false)
-                                          .loopSong(
-                                              AudioServiceRepeatMode.none);
-                                      break;
-                                    default:
-                                    } */
-                            },
+                            onPressed: () {},
                             icon: Icon(
                               /*  loopMode != '2' ? Icons.repeat :  */ Icons
                                   .repeat_one,

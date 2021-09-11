@@ -28,7 +28,7 @@ class _PlaylistTabState extends State<PlaylistTab> {
     setState(() {
       playlist = temp;
     });
-    print(temp);
+    //print(temp);
   }
 
   Future createFavoritePlaylist() async {
@@ -102,7 +102,7 @@ class _PlaylistTabState extends State<PlaylistTab> {
               },
               child: AlbumItem(
                 playButton: true,
-                item: 2,
+                item:  playlist[index],
                 typeOfAlbumItem: 'playlist',
                 onPressed: () async {
                   // playSong(index);

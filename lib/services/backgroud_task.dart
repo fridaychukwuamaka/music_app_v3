@@ -70,7 +70,7 @@ class MyBackgroundTask extends BackgroundAudioTask {
 
   @override
   Future<void> onStart(Map<String, dynamic> params) async {
-    print('hii');
+    //print('hii');
     // We configure the audio session for speech since we're playing a podcast.
     // You can also put this in your app's initialisation if your app doesn't
     // switch between two types of audio as this example does.
@@ -91,8 +91,8 @@ class MyBackgroundTask extends BackgroundAudioTask {
       switch (state) {
         case ProcessingState.completed:
           // when a song is completed it goes to the next one in the list if it is not the last element in the index
-          if (AudioServiceBackground.queue.last.extras['index'] ==
-              AudioServiceBackground.mediaItem.extras['index']) {
+          if (AudioServiceBackground.queue.last.id ==
+              AudioServiceBackground.mediaItem.id) {
             _player.stop();
           } else {
             onSkipToNext();
@@ -124,11 +124,16 @@ class MyBackgroundTask extends BackgroundAudioTask {
   }
 
   @override
-  Future<void> onAddQueueItemAt(MediaItem mediaItem, int index) {
+  Future<void> onAddQueueItemAt(MediaItem mediaItem, int index) async {
     var queue = AudioServiceBackground.queue;
     queue.insert(index, mediaItem);
-    AudioServiceBackground.setQueue(queue);
-    queue = [];
+    await AudioServiceBackground.setQueue(queue);
+    print(AudioServiceBackground.queue.first);
+    print(index);
+    print(AudioServiceBackground.queue[1]);
+    print('object');
+    print(AudioServiceBackground.queue[2]);
+    // queue = [];
     return super.onAddQueueItemAt(mediaItem, index);
   }
 
@@ -143,8 +148,8 @@ class MyBackgroundTask extends BackgroundAudioTask {
 
   @override
   Future<void> onSkipToQueueItem(String mediaId) {
-    final items = AudioServiceBackground.queue
-        .where((item) => item.extras['index'] == mediaId);
+    final items =
+        AudioServiceBackground.queue.where((item) => item.id == mediaId);
     var item = items.toList()[0];
     onPlayMediaItem(item);
     AudioServiceBackground.setMediaItem(item);
@@ -155,10 +160,10 @@ class MyBackgroundTask extends BackgroundAudioTask {
   Future<void> onPlayMediaItem(MediaItem mediaItem) async {
     print(mediaItem.id);
     try {
-      await _player.setFilePath(mediaItem.id);
+      await _player.setFilePath(mediaItem.extras['filePath']);
       onPlay();
     } catch (e) {
-      print('errr: $e');
+      //print('errr: $e');
     }
     return super.onPlayMediaItem(mediaItem);
   }
@@ -178,9 +183,7 @@ class MyBackgroundTask extends BackgroundAudioTask {
   @override
   Future<void> onSkipToNext() async {
     int index = AudioServiceBackground.queue.indexWhere(
-      (element) =>
-          element.extras['index'] ==
-          AudioServiceBackground.mediaItem.extras['index'],
+      (element) => element.id == AudioServiceBackground.mediaItem.id,
     );
     index++;
     MediaItem mediaItem = AudioServiceBackground.queue[index];
@@ -193,9 +196,7 @@ class MyBackgroundTask extends BackgroundAudioTask {
   @override
   Future<void> onSkipToPrevious() async {
     int index = AudioServiceBackground.queue.indexWhere(
-      (element) =>
-          element.extras['index'] ==
-          AudioServiceBackground.mediaItem.extras['index'],
+      (element) => element.id == AudioServiceBackground.mediaItem.id,
     );
     index--;
     MediaItem mediaItem = AudioServiceBackground.queue[index];
@@ -214,7 +215,7 @@ class MyBackgroundTask extends BackgroundAudioTask {
   Future onCustomAction(String name, arguments) {
     switch (name) {
       case 'UPDATE-INDEX':
-        print(arguments);
+        //print(arguments);
         MediaItem mediaItem = AudioServiceBackground.mediaItem.copyWith(
           extras: {},
         );

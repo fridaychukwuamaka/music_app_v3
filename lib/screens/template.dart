@@ -55,7 +55,7 @@ class _TemplatePageState extends State<TemplatePage>
 
   IconData _albumIcon(
       Map playingAlbum, dynamic albumId, String type, bool playing) {
-    print(playing);
+    //print(playing);
     return playingAlbum['id'] == albumId &&
             playingAlbum['type'] == type &&
             playing == true
@@ -64,7 +64,7 @@ class _TemplatePageState extends State<TemplatePage>
   }
 
   playSong(List<SongInfo> song, int index) async {
-    var temp = kSongInfoToMediaItem(song[index], index);
+    var temp = await kSongInfoToMediaItem(song[index], index);
     await AudioService.playMediaItem(temp);
     await AudioService.updateMediaItem(temp);
     var list = kSongInfoListToMediaItemList(song, currentSongIndex: index);
@@ -84,7 +84,7 @@ class _TemplatePageState extends State<TemplatePage>
 
 // update the list of the listview
   Future updateList(index, update, value) async {
-    print('shhdghj $songList');
+    //print('shhdghj $songList');
     if (update) {
       setState(() {
         songList.removeAt(index);
@@ -346,8 +346,7 @@ class _TemplatePageState extends State<TemplatePage>
                                     page: typeOfTemplate,
                                     textAreaLength:
                                         MediaQuery.of(context).size.width - 175,
-                                    thePlaying: snapshot.data?.id ==
-                                        songList[index].filePath,
+                                    thePlaying:  kIfSongIsPlaying(snapshot.data, songList[index].filePath),
                                   );
                                 },
                               );
@@ -393,27 +392,21 @@ class _TemplatePageState extends State<TemplatePage>
           ),
         ),
       ),
-      bottomNavigationBar: StreamBuilder<MusicBarState>(
-        stream: Rx.combineLatest2<PlaybackState, MediaItem, MusicBarState>(
-          AudioService.playbackStateStream,
-          AudioService.currentMediaItemStream,
-          (playbackState, currentMediaItem) => MusicBarState(
-            playbackState,
-            currentMediaItem,
-          ),
-        ),
+      bottomNavigationBar:  StreamBuilder<MediaItem>(
+        stream: AudioService.currentMediaItemStream,
         builder: (context, snapshot) {
-          MusicBarState musicBarState = snapshot.data;
-          final MediaItem currentMediaItem = musicBarState?.mediaItem;
-          final PlaybackState playbackState = musicBarState?.playbackState;
+          final MediaItem currentMediaItem = snapshot?.data;
 
-          return MusicBottomNavBar(
-            currentAlbumArt: currentMediaItem?.artUri?.path ?? '',
-            currentArtist: currentMediaItem?.artist ?? '',
-            currentSong: currentMediaItem?.title ?? '',
-            currentMediaItem: currentMediaItem,
-            playing: playbackState?.playing ?? false,
-          );
+          if (currentMediaItem != null) {
+            return MusicBottomNavBar(
+              currentAlbumArt: currentMediaItem?.artUri?.path ?? '',
+              currentArtist: currentMediaItem?.artist ?? '',
+              currentSong: currentMediaItem?.title ?? '',
+              currentMediaItem: currentMediaItem,
+            );
+          } else {
+            return SizedBox.shrink();
+          }
         },
       )
       /*  : SizedBox.shrink() */,

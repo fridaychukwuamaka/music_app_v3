@@ -25,7 +25,7 @@ class _ArtistTabState extends State<ArtistTab> {
     setState(() {
       artist = temp;
     });
-    print(temp.last);
+    //print(temp.last);
   }
 
   ///This function get list of songs from an album
@@ -40,7 +40,7 @@ class _ArtistTabState extends State<ArtistTab> {
   playSong(int artistIndex) async {
     int index = 0;
     var songs = await getSongFromArtist(artist[artistIndex].id);
-    var temp = kSongInfoToMediaItem(songs[index], 0);
+    var temp = await kSongInfoToMediaItem(songs[index], 0);
     await AudioService.playMediaItem(temp);
     await AudioService.updateMediaItem(temp);
     var list = kSongInfoListToMediaItemList(songs, currentSongIndex: 0);
@@ -60,7 +60,7 @@ class _ArtistTabState extends State<ArtistTab> {
               mainAxisSpacing: 25),
           itemBuilder: (context, index) {
             return GestureDetector(
-             onTap: () async {
+              onTap: () async {
                 List<SongInfo> songs =
                     await getSongFromArtist(artist[index].id);
 

@@ -36,7 +36,6 @@ class _MyHomePageState extends State<MyHomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     
       body: SafeArea(
         child: Column(
           children: <Widget>[
@@ -109,28 +108,21 @@ class _MyHomePageState extends State<MyHomePage>
           ],
         ),
       ),
-      bottomNavigationBar: StreamBuilder<MusicBarState>(
-          stream: Rx.combineLatest2<PlaybackState, MediaItem, MusicBarState>(
-            AudioService.playbackStateStream,
-            AudioService.currentMediaItemStream,
-            (playbackState, currentMediaItem) => MusicBarState(
-              playbackState,
-              currentMediaItem,
-            ),
-          ),
+      bottomNavigationBar: StreamBuilder<MediaItem>(
+          stream: AudioService.currentMediaItemStream,
           builder: (context, snapshot) {
-            MusicBarState musicBarState = snapshot.data;
-            final MediaItem currentMediaItem = musicBarState?.mediaItem;
-            final PlaybackState playbackState = musicBarState?.playbackState;
+            final MediaItem currentMediaItem = snapshot?.data;
 
-            return MusicBottomNavBar(
-              currentAlbumArt: currentMediaItem?.artUri?.path ?? '',
-              currentArtist: currentMediaItem?.artist ?? '',
-              currentSong: currentMediaItem?.title ?? '',
-              currentMediaItem: currentMediaItem,
-              // mediaItemQueue: [],
-              playing: playbackState?.playing ?? false,
-            );
+            if (currentMediaItem != null) {
+              return MusicBottomNavBar(
+                currentAlbumArt: currentMediaItem?.artUri?.path ?? '',
+                currentArtist: currentMediaItem?.artist ?? '',
+                currentSong: currentMediaItem?.title ?? '',
+                currentMediaItem: currentMediaItem,
+              );
+            } else {
+              return SizedBox.shrink();
+            }
           }),
     );
   }

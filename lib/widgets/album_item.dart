@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter/material.dart';
@@ -67,9 +68,7 @@ class _AlbumItemState extends State<AlbumItem> {
     var queue = AudioService.queue;
 
     int index = AudioService.queue.indexWhere(
-      (element) =>
-          element.extras['index'] ==
-          AudioService.currentMediaItem.extras['index'],
+      (element) => element.id == AudioService.currentMediaItem.id,
     );
     index++;
 
@@ -83,6 +82,8 @@ class _AlbumItemState extends State<AlbumItem> {
     List<MediaItem> mediaItemSongs = kSongInfoListToMediaItemList(songs);
     AudioService.addQueueItems(mediaItemSongs);
   }
+
+  String hasImage = null;
 
   @override
   Widget build(BuildContext context) {
@@ -101,50 +102,65 @@ class _AlbumItemState extends State<AlbumItem> {
       ),
       child: Stack(
         children: <Widget>[
-          ClipRRect(
-            borderRadius: widget.borderRadius,
-            child: widget.albumArtwork != null
-                ? SizedBox.expand(
-                    child: Image.file(
-                      File(widget.albumArtwork),
-                      errorBuilder: (context, error, stackTrace) => Center(
-                        child: SizedBox(
-                          height: 45,
-                          width: 45,
-                          child: Icon(
-                            widget.typeOfAlbumItem == 'album'
-                                ? FeatherIcons.disc
-                                : widget.typeOfAlbumItem == 'artist'
-                                    ? FeatherIcons.user
-                                    : Icons.playlist_play,
-                            color: Color(0xFF5C5C5C),
-                            size: 33,
+          FutureBuilder<Uint8List>(
+              future: FlutterAudioQuery().getArtwork(
+                type: widget.typeOfAlbumItem == 'album'
+                    ? ResourceType.ALBUM
+                    : ResourceType.ARTIST,
+                id: widget.item.id,
+              ),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data.isNotEmpty) {
+                  hasImage = '';
+                } else {
+                  hasImage = null;
+                }
+                return ClipRRect(
+                  borderRadius: widget.borderRadius,
+                  child: snapshot.hasData && snapshot.data.isNotEmpty
+                      ? SizedBox.expand(
+                          child: Image.memory(
+                            snapshot.data,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Center(
+                              child: SizedBox(
+                                height: 45,
+                                width: 45,
+                                child: Icon(
+                                  widget.typeOfAlbumItem == 'album'
+                                      ? FeatherIcons.disc
+                                      : widget.typeOfAlbumItem == 'artist'
+                                          ? FeatherIcons.user
+                                          : Icons.playlist_play,
+                                  color: Color(0xFF5C5C5C),
+                                  size: 33,
+                                ),
+                              ),
+                            ),
+                            fit: BoxFit.fitHeight,
+                            filterQuality: FilterQuality.none,
+                            cacheHeight: 200,
+                            cacheWidth: 200,
+                            gaplessPlayback: true,
+                          ),
+                        )
+                      : Center(
+                          child: SizedBox(
+                            height: 45,
+                            width: 45,
+                            child: Icon(
+                              widget.typeOfAlbumItem == 'album'
+                                  ? FeatherIcons.disc
+                                  : widget.typeOfAlbumItem == 'artist'
+                                      ? FeatherIcons.user
+                                      : Icons.playlist_play,
+                              size: 33,
+                              color: Color(0xFF5C5C5C),
+                            ),
                           ),
                         ),
-                      ),
-                      fit: BoxFit.fitHeight,
-                      filterQuality: FilterQuality.none,
-                      cacheHeight: 200,
-                      cacheWidth: 200,
-                      gaplessPlayback: true,
-                    ),
-                  )
-                : Center(
-                    child: SizedBox(
-                      height: 45,
-                      width: 45,
-                      child: Icon(
-                        widget.typeOfAlbumItem == 'album'
-                            ? FeatherIcons.disc
-                            : widget.typeOfAlbumItem == 'artist'
-                                ? FeatherIcons.user
-                                : Icons.playlist_play,
-                        size: 33,
-                        color: Color(0xFF5C5C5C),
-                      ),
-                    ),
-                  ),
-          ),
+                );
+              }),
           Container(
             decoration: BoxDecoration(
               gradient: widget.albumArtwork != null
@@ -187,8 +203,7 @@ class _AlbumItemState extends State<AlbumItem> {
               icon: Icon(
                 Icons.more_vert,
                 size: 20,
-                color:
-                    widget.albumArtwork != null ? Colors.white : Colors.black,
+                color: hasImage != null ? Colors.white : Colors.black,
               ),
               onSelected: (value) async {
                 switch (value) {
@@ -245,7 +260,7 @@ class _AlbumItemState extends State<AlbumItem> {
                           height: 0,
                           child: SizedBox.shrink(),
                         ),
-                    widget.typeOfAlbumItem == 'playlist' &&
+                  widget.typeOfAlbumItem == 'playlist' &&
                           widget.title != 'Liked'
                       ? PopupMenuItem(
                           child: Text(
@@ -256,7 +271,7 @@ class _AlbumItemState extends State<AlbumItem> {
                           value: 4,
                         )
                       : PopupMenuItem(
-                        height: 0,
+                          height: 0,
                           child: SizedBox.shrink(),
                         ),
                   //PopupMenuDivider(),
@@ -279,9 +294,7 @@ class _AlbumItemState extends State<AlbumItem> {
                   style: Theme.of(context).textTheme.bodyText1.copyWith(
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
-                        color: widget.albumArtwork != null
-                            ? Colors.white
-                            : Colors.black,
+                        color: hasImage != null ? Colors.white : Colors.black,
                       ),
                 ),
               ))

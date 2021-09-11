@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:hive/hive.dart';
 import 'package:music_app_v3/widgets/music_list_item.dart';
@@ -29,60 +31,71 @@ class _NowPlayingPageState extends State<NowPlayingPage>
 
   @override
   Widget build(BuildContext context) {
-    print('loooo');
     return Scaffold(
       body: SafeArea(
-          child: NowplayingMini(
-              /* currentAlbumArt: mediaItem?.artUri != null
-                    ? mediaItem?.artUri?.split('file://')[1]
-                    : null,
-                mediaItem: mediaItem,
-                currentMediaItem: mediaItem,
-                position: position,
-                queue: queue,
-                songList: queue, */
-              controller: _nowPlayingController)),
+        child: NowplayingMini(
+          controller: _nowPlayingController,
+        ),
+      ),
     );
   }
 }
 
-String currentAlbumArt = AudioService?.currentMediaItem?.artUri?.path ?? '';
-MediaItem mediaItem = AudioService.currentMediaItem;
 
-class NowplayingMini extends StatelessWidget {
+
+
+MediaItem mediaItem = AudioService.currentMediaItem;
+class NowplayingMini extends StatefulWidget {
   const NowplayingMini({this.controller});
   final ScrollController controller;
 
   @override
+  _NowplayingMiniState createState() => _NowplayingMiniState();
+}
+
+class _NowplayingMiniState extends State<NowplayingMini> {
+  @override
   Widget build(BuildContext context) {
-    print('hgfdsd');
+    String _currentIndex = '';
     return Container(
       height: MediaQuery.of(context).size.height,
       width: MediaQuery.of(context).size.width,
       child: Stack(
         children: <Widget>[
-          Positioned(
-            top: 0,
-            child: currentAlbumArt != null
-                ? Image.file(
-                    File(
-                      currentAlbumArt,
+           StreamBuilder<MediaItem>(
+              stream: AudioService.currentMediaItemStream,
+              initialData: AudioService.currentMediaItem,
+              builder: (context, snapshot) {
+                return FutureBuilder<Uint8List>(
+                    future: FlutterAudioQuery().getArtwork(
+                      type: ResourceType.SONG,
+                      id: snapshot.data.extras['songId'],
                     ),
-                    height: MediaQuery.of(context).size.height,
-                    width: MediaQuery.of(context).size.width,
-                    fit: BoxFit.cover,
-                    filterQuality: FilterQuality.none,
-                    gaplessPlayback: true,
-                  )
-                : Container(
-                    color: Colors.black,
-                    height: MediaQuery.of(context).size.height,
-                    width: MediaQuery.of(context).size.width,
-                    child: Icon(
-                      FeatherIcons.music,
-                      color: Colors.white,
-                    )),
-          ),
+                    builder: (context, snapshot) {
+                      return Positioned(
+                        top: 0,
+                        child: snapshot.hasData && snapshot.data.isNotEmpty
+                            ? Image.memory(
+                                snapshot.data,
+                                height: MediaQuery.of(context).size.height,
+                                width: MediaQuery.of(context).size.width,
+                                fit: BoxFit.cover,
+                                filterQuality: FilterQuality.medium,
+                                gaplessPlayback: true,
+                              )
+                            : Container(
+                                color: Colors.black,
+                                height: MediaQuery.of(context).size.height,
+                                width: MediaQuery.of(context).size.width,
+                                child: Center(
+                                  child: Icon(
+                                    FeatherIcons.music,
+                                    color: Colors.white,
+                                  ),
+                                )),
+                      );
+                    });
+              }),
           Container(
             decoration: BoxDecoration(color: Color.fromRGBO(0, 0, 0, 0.61)),
           ),
@@ -113,7 +126,8 @@ class NowplayingMini extends StatelessWidget {
                     stream: AudioService.currentMediaItemStream,
                     builder: (context, snapshot) {
                       mediaItem = snapshot.data;
-                      currentAlbumArt = snapshot?.data?.artUri?.path ?? "";
+               
+                      _currentIndex = snapshot?.data?.id;
                       return Padding(
                         padding: const EdgeInsets.only(
                             top: 18, left: 25.0, right: 25.0),
@@ -127,9 +141,7 @@ class NowplayingMini extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
                                   GestureDetector(
-                                    onTap: () {
-                                      print('djfkhf::${controller.offset}');
-                                    },
+                                    onTap: () {},
                                     child: Text(
                                       mediaItem.title,
                                       maxLines: 1,
@@ -143,16 +155,10 @@ class NowplayingMini extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  /* SizedBox(
-                                height: 5,
-                              ), */
                                   Row(
                                     children: <Widget>[
                                       GestureDetector(
-                                        onTap: () {
-                                          /*  showArtists(
-                                            context, currentMediaItem, 'playing'); */
-                                        },
+                                        onTap: () {},
                                         child: Container(
                                           constraints: BoxConstraints(
                                               maxWidth: (MediaQuery.of(context)
@@ -184,10 +190,7 @@ class NowplayingMini extends StatelessWidget {
                                         ),
                                       ),
                                       GestureDetector(
-                                        onTap: () {
-                                          /* showAlbums(
-                                            context, currentMediaItem, 'playing'); */
-                                        },
+                                        onTap: () {},
                                         child: Container(
                                           constraints: BoxConstraints(
                                               maxWidth: (MediaQuery.of(context)
@@ -256,45 +259,42 @@ class NowplayingMini extends StatelessWidget {
                       );
                     }),
                 StreamBuilder<List<MediaItem>>(
-                    initialData: AudioService.queue ?? [],
+                    initialData: [],
                     stream: AudioService.queueStream,
                     builder: (context, snapshot) {
                       final List<MediaItem> queue = snapshot.data;
-                      print('kill');
+
                       return Flexible(
                           child: ListView.builder(
                         padding: EdgeInsets.all(25).copyWith(top: 15),
                         itemCount: queue.length,
-                        // itemExtent: 5,
-
                         itemBuilder: (context, index) {
-                          // print('ffgf: ${ ScrollController()}');
                           return Dismissible(
                             key: Key('${index.toString()}${queue[index].id}'),
-                            onDismissed: (direction) async {
-                              /*   queue.removeAt(index);
-                                  await onRemoveAt(index); */
-                            },
-                            child: MusicListItem(
-                              onClick: () async {
-                                await AudioService.skipToQueueItem(
-                                    queue[index].extras['index']);
-
-                                currentAlbumArt = queue[index].artUri.path;
-                              },
-                              title: queue[index].title,
-                              artist: queue[index].artist,
-                              albumArt: queue[index]?.artUri?.path ?? '',
-                              song: queue[index],
-                              page: 'now_playing',
-                              moreIconVisible: false,
-                              titleTextColor: Colors.white,
-                              subtitleTextColor: Colors.white,
-                              color: Color.fromRGBO(0, 0, 0, 0),
-                              songIndex: index,
-                              thePlaying: /*  _currentIndex == index */ false,
-                              textAreaLength:
-                                  MediaQuery.of(context).size.width - 175,
+                            onDismissed: (direction) async {},
+                            child: StreamBuilder<Object>(
+                              stream: AudioService.currentMediaItemStream,
+                              builder: (context, snapshot) {
+                                return MusicListItem(
+                                  onClick: () async {
+                                    await AudioService.skipToQueueItem(
+                                        queue[index].id);
+                                  },
+                                  title: queue[index].title,
+                                  artist: queue[index].artist,
+                                  albumArt: queue[index]?.artUri?.path ?? '',
+                                  song: queue[index],
+                                  page: 'now_playing',
+                                  moreIconVisible: false,
+                                  titleTextColor: Colors.white,
+                                  subtitleTextColor: Colors.white,
+                                  color: Color.fromRGBO(0, 0, 0, 0),
+                                  songIndex: index,
+                                  thePlaying: _currentIndex == queue[index].id,
+                                  textAreaLength:
+                                      MediaQuery.of(context).size.width - 175,
+                                );
+                              }
                             ),
                           );
                         },

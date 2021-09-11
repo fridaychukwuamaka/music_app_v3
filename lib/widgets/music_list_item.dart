@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:music_app_v3/constant.dart';
 import 'package:music_app_v3/widgets/music_playlist_modal.dart';
@@ -45,22 +47,21 @@ class MusicListItem extends StatelessWidget {
     this.moreIconVisible: true,
   });
 
-  playNext() {
+  Future playNext() async {
+    MediaItem temp = await kSongInfoToMediaItem(song, 0);
     int index = AudioService.queue.indexWhere(
       (element) {
-        return element.extras['index'] ==
-            AudioService.currentMediaItem.extras['index'];
+        return element.id == AudioService.currentMediaItem.id;
       },
     );
     index++;
-    var temp = kSongInfoToMediaItem(song, songIndex);
-    AudioService.addQueueItemAt(temp, index);
+    await AudioService.addQueueItemAt(temp, index);
   }
 
-  addToQueue() {
+  Future<void> addToQueue() async {
     int index = AudioService.queue.length;
     index = index + 1;
-    var temp = kSongInfoToMediaItem(song, index);
+    var temp = await kSongInfoToMediaItem(song, 0);
     AudioService.addQueueItem(temp);
   }
 
@@ -78,50 +79,42 @@ class MusicListItem extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                PhysicalModel(
-                  elevation: 5,
-                  shadowColor: Color.fromRGBO(0, 0, 0, 0.23),
-                  borderRadius: BorderRadius.circular(3),
-                  color: color == null ? Colors.black : color,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(3),
-                    child: albumArt != null && albumArt != ''
-                        ? Image.file(
-                            File(albumArt),
-                            fit: BoxFit.fitHeight,
-                            height: 45,
-                            errorBuilder: (context, error, stackTrace) {
-                              print(error);
-                              return SizedBox(
-                                height: 45,
-                                width: 42.5,
-                                child: Icon(
-                                  FeatherIcons.music,
-                                  size: 18,
-                                  color: iconColor == null
-                                      ? Colors.white
-                                      : iconColor,
+                FutureBuilder<Uint8List>(
+                    future: FlutterAudioQuery().getArtwork(
+                      type: ResourceType.SONG,
+                      id: song.runtimeType == SongInfo
+                          ? song.id
+                          : song.extras['songId'],
+                    ),
+                    builder: (context, snapshot) {
+                      return Container(
+                        height: 45,
+                        width: 42.5,
+                        decoration: BoxDecoration(
+                          color: color == null ? Colors.black : color,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        child: snapshot.hasData && snapshot.data.isNotEmpty
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(3),
+                                child: Image.memory(
+                                  snapshot.data,
+                                  height: double.infinity,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  filterQuality: FilterQuality.medium,
+                                  gaplessPlayback: true,
                                 ),
-                              );
-                            },
-                            width: 42.5,
-                            filterQuality: FilterQuality.none,
-                            cacheHeight: 85,
-                            cacheWidth: 85,
-                            gaplessPlayback: true,
-                          )
-                        : SizedBox(
-                            height: 45,
-                            width: 42.5,
-                            child: Icon(
-                              FeatherIcons.music,
-                              size: 18,
-                              color:
-                                  iconColor == null ? Colors.white : iconColor,
-                            ),
-                          ),
-                  ),
-                ),
+                              )
+                            : Icon(
+                                FeatherIcons.music,
+                                size: 18,
+                                color: iconColor == null
+                                    ? Colors.white
+                                    : iconColor,
+                              ),
+                      );
+                    }),
                 SizedBox(
                   width: 15,
                 ),
@@ -191,7 +184,7 @@ class MusicListItem extends StatelessWidget {
                   onSelected: (value) async {
                     switch (value) {
                       case 0:
-                        playNext();
+                        await playNext();
                         break;
                       case 1:
                         addToQueue();

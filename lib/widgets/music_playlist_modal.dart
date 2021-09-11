@@ -99,7 +99,7 @@ class _MusicPlaylistModalState extends State<MusicPlaylistModal> {
                   if (temp != null) {
                     playlist = json.decode(temp);
                   }
-                  print(playlist);
+                  //print(playlist);
                   return ListView.builder(
                     itemCount: playlist.length,
                     itemBuilder: (BuildContext context, int index) {

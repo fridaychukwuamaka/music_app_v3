@@ -28,14 +28,14 @@ class _AlbumTabState extends State<AlbumTab> {
     setState(() {
       albums = temp;
     });
-    print(temp.last);
+    //print(temp.last);
   }
 
   ///this function plays the selected song
   playSong(int albumIndex) async {
     int index = 0;
     var songs = await getSongFromAlbum(albums[albumIndex].id);
-    var temp = kSongInfoToMediaItem(songs[index], 0);
+    var temp = await kSongInfoToMediaItem(songs[index], 0);
     await AudioService.playMediaItem(temp);
     await AudioService.updateMediaItem(temp);
     var list = kSongInfoListToMediaItemList(songs, currentSongIndex: 0);
@@ -80,18 +80,24 @@ class _AlbumTabState extends State<AlbumTab> {
                   ),
                 );
               },
-              child: AlbumItem(
-                playButton: true,
-                item: albums[index],
-                typeOfAlbumItem: 'album',
-                onPressed: () async {
-                  playSong(index);
-                },
-                icon: Icons.play_arrow,
-                title: albums[index].title,
-                albumArtwork: albums[index].albumArt,
-                borderRadius: BorderRadius.circular(5),
-              ),
+              child: StreamBuilder<MediaItem>(
+                  stream: AudioService.currentMediaItemStream,
+                  builder: (context, snapshot) {
+                    return AlbumItem(
+                      playButton: true,
+                      item: albums[index],
+                      typeOfAlbumItem: 'album',
+                      onPressed: () async {
+                        playSong(index);
+                      },
+                      icon: snapshot.hasData && snapshot.data.extras['albumId'] == albums[index].id
+                          ? Icons.pause
+                          :Icons.play_arrow,
+                      title: albums[index].title,
+                      albumArtwork: albums[index].albumArt,
+                      borderRadius: BorderRadius.circular(5),
+                    );
+                  }),
             );
           });
     } else {

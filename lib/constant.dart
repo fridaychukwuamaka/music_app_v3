@@ -1,22 +1,42 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:uuid/uuid.dart';
+
 final FlutterAudioQuery audioQuery = FlutterAudioQuery();
 
 var uuid = Uuid();
 
 const String kPlaceHolderImage = 'assets/images/baby.jpg';
 
-extension CapExtension on String {
-  String get inCaps => this.length > 0 ?'${this[0].toUpperCase()}${this.substring(1)}':'';
-  String get allInCaps => this.toUpperCase();
-  String get capitalizeFirstofEach => this.replaceAll(RegExp(' +'), ' ').split(" ").map((str) => str.inCaps).join(" ");
+bool kIfSongIsPlaying(MediaItem currentMediaItem, String songPath) {
+  if (currentMediaItem?.extras?.containsKey('filePath') == true) {
+    if (currentMediaItem.extras['filePath'] == songPath) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
 }
 
-MediaItem kSongInfoToMediaItem(SongInfo song, int index) {
+extension CapExtension on String {
+  String get inCaps =>
+      this.length > 0 ? '${this[0].toUpperCase()}${this.substring(1)}' : '';
+  String get allInCaps => this.toUpperCase();
+  String get capitalizeFirstofEach => this
+      .replaceAll(RegExp(' +'), ' ')
+      .split(" ")
+      .map((str) => str.inCaps)
+      .join(" ");
+}
+
+Future<MediaItem> kSongInfoToMediaItem(SongInfo song, int index) async {
+  final String id = uuid.v4();
   MediaItem mediaItem = MediaItem(
-    id: song.filePath,
+    id: id,
     album: song.album,
     title: song.title,
     artist: song.artist,
@@ -27,9 +47,14 @@ MediaItem kSongInfoToMediaItem(SongInfo song, int index) {
     extras: {
       'albumId': song.albumId,
       'songId': song.id,
-      'index': index.toString(),
+      'filePath': song.filePath,
+      'index': id,
+      'songArt': await FlutterAudioQuery()
+          .getArtwork(id: song.id, type: ResourceType.SONG)
     },
   );
+
+  
   return mediaItem;
 }
 
@@ -40,26 +65,31 @@ List<MediaItem> kSongInfoListToMediaItemList(
   List<MediaItem> queue = [];
 
   queue = List.from(
-    songList.map(
-      (e) => MediaItem(
-        id: e.filePath,
-        album: e.album,
-        title: e.title,
-        artist: e.artist,
-        artUri: Uri.parse(
-            e.albumArtwork  != null ? File(e.albumArtwork).uri.toString() : ''),
-        duration: Duration(milliseconds: int.parse(e.duration)),
-        extras: {
-          'albumId': e.albumId,
-          'songId': e.id,
-          'index': songList.indexOf(e) == currentSongIndex
-              ? songList.indexOf(e).toString()
-              : uuid.v4()
-        },
-      ),
+     songList.map(
+      (e)  {
+        final String id = uuid.v4();
+        // final Uint8List songArt = await FlutterAudioQuery()
+        //         .getArtwork(id: e.id, type: ResourceType.SONG);
+        return MediaItem(
+          id: id,
+          album: e.album,
+          title: e.title,
+          artist: e.artist,
+          artUri: Uri.parse(e.albumArtwork != null
+              ? File(e.albumArtwork).uri.toString()
+              : ''),
+          duration: Duration(milliseconds: int.parse(e.duration)),
+          extras: {
+            'albumId': e.albumId,
+            'songId': e.id,
+            'filePath': e.filePath,
+            'index': id,
+            // 'songArt': songArt
+          },
+        );
+      },
     ),
   );
-  print(queue[0].extras);
 
   return queue;
 }

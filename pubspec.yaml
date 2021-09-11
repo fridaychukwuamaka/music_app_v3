@@ -30,7 +30,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   provider: ^5.0.0
   flutter_feather_icons: 
-  flutter_audio_query: ^0.3.5+5
+  flutter_audio_query: ^0.3.5+6
   just_audio: ^0.7.3
   intl: ^0.17.0
   hive: ^2.0.2

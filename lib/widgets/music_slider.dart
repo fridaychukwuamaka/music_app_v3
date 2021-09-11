@@ -43,8 +43,6 @@ class MusicSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    /* print('currentPositiondouble: $currentPositiondouble');
-    print('double: $durationdouble'); */
     return Column(
       children: <Widget>[
         Padding(
@@ -142,7 +140,7 @@ class MusicSlider extends StatelessWidget {
                 builder: (BuildContext context, Box value, Widget child) {
                   dynamic favorite = json.decode(value.get('playlist'));
 
-                  print(favorite);
+                  //print(favorite);
 
                   favorite = favorite.singleWhere(
                     (element) =>
