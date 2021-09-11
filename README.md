@@ -1,6 +1,6 @@
 # music_app_v3
 
-A new Flutter project.
+A mobile app built with flutter that is able to plays all the songs on the local storage. User can also create and delete playlist
 
 ## Getting Started
 
