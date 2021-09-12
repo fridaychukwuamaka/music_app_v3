@@ -12,6 +12,8 @@ import 'package:music_app_v3/services/backgroud_task.dart';
 import 'package:music_app_v3/widgets/music_app_bar.dart';
 import 'package:music_app_v3/widgets/music_bottom_nav_bar.dart';
 
+import 'search_page.dart';
+
 class MyHomePage extends StatefulWidget {
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -30,7 +32,20 @@ class _MyHomePageState extends State<MyHomePage>
     onBackground();
     _tabController = TabController(length: 4, vsync: this, initialIndex: 0);
     openDbBoxes();
+    setLoopMode();
     super.initState();
+  }
+
+  setLoopMode() async {
+    var loopMode = await Hive.box('loop').get('loop');
+    print(loopMode);
+    if (loopMode == '0' || loopMode == null) {
+      AudioService.setRepeatMode(AudioServiceRepeatMode.none);
+    } else if (loopMode == '1') {
+      AudioService.setRepeatMode(AudioServiceRepeatMode.one);
+    } else {
+      AudioService.setRepeatMode(AudioServiceRepeatMode.all);
+    }
   }
 
   @override
@@ -51,7 +66,15 @@ class _MyHomePageState extends State<MyHomePage>
                 trailingIcon: FeatherIcons.search,
                 padding: false,
                 onleadingIconPressed: () async {},
-                ontralingIconPressed: () async {},
+                ontralingIconPressed: () async {
+                  var t = await showSearch(
+                    context: context,
+                    delegate: SearchPage(),
+                  );
+                  if (t == true) {
+                    // Provider.of<MusicService>(context).clearSearchArray();
+                  }
+                },
               ),
             ),
             SizedBox(

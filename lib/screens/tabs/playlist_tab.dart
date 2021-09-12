@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:music_app_v3/models/playlist_data.dart';
@@ -56,15 +57,18 @@ class _PlaylistTabState extends State<PlaylistTab> {
   }
 
   ///this function plays the selected song
-  /* playSong(int artistIndex) async {
+  playSong(String playlistId) async {
     int index = 0;
-    var songs = await getSongFromArtist(artist[artistIndex].id);
-    var temp = kSongInfoToMediaItem(songs[index], 0);
+    var songs = await getSongFromPlaylist(playlistId);
+    var temp = await kSongInfoToMediaItem(songs[index], 0);
     await AudioService.playMediaItem(temp);
     await AudioService.updateMediaItem(temp);
     var list = kSongInfoListToMediaItemList(songs, currentSongIndex: 0);
+     list[index] = temp;
     await AudioService.updateQueue(list);
-  } */
+  }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +109,7 @@ class _PlaylistTabState extends State<PlaylistTab> {
                 item:  playlist[index],
                 typeOfAlbumItem: 'playlist',
                 onPressed: () async {
-                  // playSong(index);
+                  playSong(playlist[index].id);
                 },
                 icon: Icons.play_arrow,
                 title: playlist[index].name,

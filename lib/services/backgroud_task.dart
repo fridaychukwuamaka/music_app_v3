@@ -21,9 +21,10 @@ void myBackgroundTaskEntrypoint() {
 
 class MyBackgroundTask extends BackgroundAudioTask {
   AudioPlayer _player = AudioPlayer();
-  List<MediaItem> _queue = [];
   AudioProcessingState _skipState;
   StreamSubscription<PlaybackEvent> _eventSubscription;
+
+  AudioServiceRepeatMode loopMode;
 
   /// Broadcasts the current state to all clients.
   Future<void> _broadcastState() async {
@@ -48,8 +49,6 @@ class MyBackgroundTask extends BackgroundAudioTask {
     );
   }
 
-  /// Maps just_audio's processing state into into audio_service's playing
-  /// state. If we are in the middle of a skip, we use [_skipState] instead.
   AudioProcessingState _getProcessingState() {
     if (_skipState != null) return _skipState;
     switch (_player.processingState) {
@@ -70,23 +69,13 @@ class MyBackgroundTask extends BackgroundAudioTask {
 
   @override
   Future<void> onStart(Map<String, dynamic> params) async {
-    //print('hii');
-    // We configure the audio session for speech since we're playing a podcast.
-    // You can also put this in your app's initialisation if your app doesn't
-    // switch between two types of audio as this example does.
     final session = await AudioSession.instance;
     await session.configure(AudioSessionConfiguration.speech());
-    // Broadcast media item changes.
 
-    /*   _player.currentIndexStream.listen((index) {
-      if (index != null) AudioServiceBackground.setMediaItem(_queue[index]);
-    }); */
-
-    // Propagate all events from the audio player to AudioService clients.
     _eventSubscription = _player.playbackEventStream.listen((event) {
       _broadcastState();
     });
-    // Special processing for state transitions.
+
     _player.processingStateStream.listen((state) async {
       switch (state) {
         case ProcessingState.completed:
@@ -94,6 +83,8 @@ class MyBackgroundTask extends BackgroundAudioTask {
           if (AudioServiceBackground.queue.last.id ==
               AudioServiceBackground.mediaItem.id) {
             _player.stop();
+          } else if (loopMode == AudioServiceRepeatMode.one) {
+            repeatOneSong();
           } else {
             onSkipToNext();
           }
@@ -118,9 +109,8 @@ class MyBackgroundTask extends BackgroundAudioTask {
   }
 
   @override
-  Future<void> onUpdateQueue(List<MediaItem> queue) {
-    AudioServiceBackground.setQueue(queue);
-    return super.onUpdateQueue(queue);
+  Future<void> onUpdateQueue(List<MediaItem> queue) async {
+    await AudioServiceBackground.setQueue(queue);
   }
 
   @override
@@ -128,12 +118,6 @@ class MyBackgroundTask extends BackgroundAudioTask {
     var queue = AudioServiceBackground.queue;
     queue.insert(index, mediaItem);
     await AudioServiceBackground.setQueue(queue);
-    print(AudioServiceBackground.queue.first);
-    print(index);
-    print(AudioServiceBackground.queue[1]);
-    print('object');
-    print(AudioServiceBackground.queue[2]);
-    // queue = [];
     return super.onAddQueueItemAt(mediaItem, index);
   }
 
@@ -162,10 +146,19 @@ class MyBackgroundTask extends BackgroundAudioTask {
     try {
       await _player.setFilePath(mediaItem.extras['filePath']);
       onPlay();
-    } catch (e) {
-      //print('errr: $e');
-    }
+    } catch (e) {}
     return super.onPlayMediaItem(mediaItem);
+  }
+
+  repeatOneSong() {
+    int index = AudioServiceBackground.queue.indexWhere(
+      (element) => element.id == AudioServiceBackground.mediaItem.id,
+    );
+    MediaItem mediaItem = AudioServiceBackground.queue[index];
+
+    onPlayMediaItem(mediaItem);
+
+    AudioServiceBackground.setMediaItem(mediaItem);
   }
 
   @override
@@ -194,6 +187,15 @@ class MyBackgroundTask extends BackgroundAudioTask {
   }
 
   @override
+  Future<void> onRemoveQueueItem(MediaItem mediaItem) async {
+    print(mediaItem);
+    var queue = AudioServiceBackground.queue;
+    queue.remove(mediaItem);
+    await AudioServiceBackground.setQueue(queue);
+    return super.onRemoveQueueItem(mediaItem);
+  }
+
+  @override
   Future<void> onSkipToPrevious() async {
     int index = AudioServiceBackground.queue.indexWhere(
       (element) => element.id == AudioServiceBackground.mediaItem.id,
@@ -212,16 +214,21 @@ class MyBackgroundTask extends BackgroundAudioTask {
   }
 
   @override
+  Future<void> onSetRepeatMode(AudioServiceRepeatMode repeatMode) {
+    loopMode = repeatMode;
+    return super.onSetRepeatMode(repeatMode);
+  }
+
+  @override
   Future onCustomAction(String name, arguments) {
     switch (name) {
       case 'UPDATE-INDEX':
-        //print(arguments);
         MediaItem mediaItem = AudioServiceBackground.mediaItem.copyWith(
           extras: {},
         );
-
         AudioServiceBackground.setMediaItem(mediaItem);
         break;
+
       default:
     }
     return super.onCustomAction(name, arguments);

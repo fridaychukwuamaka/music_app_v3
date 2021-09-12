@@ -1,11 +1,9 @@
-import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
-import 'package:hive/hive.dart';
 import 'package:music_app_v3/widgets/music_list_item.dart';
 
 class NowPlayingPage extends StatefulWidget {
@@ -41,10 +39,8 @@ class _NowPlayingPageState extends State<NowPlayingPage>
   }
 }
 
-
-
-
 MediaItem mediaItem = AudioService.currentMediaItem;
+
 class NowplayingMini extends StatefulWidget {
   const NowplayingMini({this.controller});
   final ScrollController controller;
@@ -62,39 +58,40 @@ class _NowplayingMiniState extends State<NowplayingMini> {
       width: MediaQuery.of(context).size.width,
       child: Stack(
         children: <Widget>[
-           StreamBuilder<MediaItem>(
+          StreamBuilder<MediaItem>(
               stream: AudioService.currentMediaItemStream,
               initialData: AudioService.currentMediaItem,
               builder: (context, snapshot) {
                 return FutureBuilder<Uint8List>(
-                    future: FlutterAudioQuery().getArtwork(
-                      type: ResourceType.SONG,
-                      id: snapshot.data.extras['songId'],
-                    ),
-                    builder: (context, snapshot) {
-                      return Positioned(
-                        top: 0,
-                        child: snapshot.hasData && snapshot.data.isNotEmpty
-                            ? Image.memory(
-                                snapshot.data,
-                                height: MediaQuery.of(context).size.height,
-                                width: MediaQuery.of(context).size.width,
-                                fit: BoxFit.cover,
-                                filterQuality: FilterQuality.medium,
-                                gaplessPlayback: true,
-                              )
-                            : Container(
-                                color: Colors.black,
-                                height: MediaQuery.of(context).size.height,
-                                width: MediaQuery.of(context).size.width,
-                                child: Center(
-                                  child: Icon(
-                                    FeatherIcons.music,
-                                    color: Colors.white,
-                                  ),
-                                )),
-                      );
-                    });
+                  future: FlutterAudioQuery().getArtwork(
+                    type: ResourceType.SONG,
+                    id: snapshot.data.extras['songId'],
+                  ),
+                  builder: (context, snapshot) {
+                    return Positioned(
+                      top: 0,
+                      child: snapshot.hasData && snapshot.data.isNotEmpty
+                          ? Image.memory(
+                              snapshot.data,
+                              height: MediaQuery.of(context).size.height,
+                              width: MediaQuery.of(context).size.width,
+                              fit: BoxFit.cover,
+                              filterQuality: FilterQuality.medium,
+                              gaplessPlayback: true,
+                            )
+                          : Container(
+                              color: Colors.black,
+                              height: MediaQuery.of(context).size.height,
+                              width: MediaQuery.of(context).size.width,
+                              child: Center(
+                                child: Icon(
+                                  FeatherIcons.music,
+                                  color: Colors.white,
+                                ),
+                              )),
+                    );
+                  },
+                );
               }),
           Container(
             decoration: BoxDecoration(color: Color.fromRGBO(0, 0, 0, 0.61)),
@@ -126,7 +123,7 @@ class _NowplayingMiniState extends State<NowplayingMini> {
                     stream: AudioService.currentMediaItemStream,
                     builder: (context, snapshot) {
                       mediaItem = snapshot.data;
-               
+
                       _currentIndex = snapshot?.data?.id;
                       return Padding(
                         padding: const EdgeInsets.only(
@@ -270,32 +267,34 @@ class _NowplayingMiniState extends State<NowplayingMini> {
                         itemCount: queue.length,
                         itemBuilder: (context, index) {
                           return Dismissible(
-                            key: Key('${index.toString()}${queue[index].id}'),
-                            onDismissed: (direction) async {},
+                            key: Key(queue[index].id),
+                            onDismissed: (direction) async {
+                              AudioService.removeQueueItem(queue[index]);
+                            },
                             child: StreamBuilder<Object>(
-                              stream: AudioService.currentMediaItemStream,
-                              builder: (context, snapshot) {
-                                return MusicListItem(
-                                  onClick: () async {
-                                    await AudioService.skipToQueueItem(
-                                        queue[index].id);
-                                  },
-                                  title: queue[index].title,
-                                  artist: queue[index].artist,
-                                  albumArt: queue[index]?.artUri?.path ?? '',
-                                  song: queue[index],
-                                  page: 'now_playing',
-                                  moreIconVisible: false,
-                                  titleTextColor: Colors.white,
-                                  subtitleTextColor: Colors.white,
-                                  color: Color.fromRGBO(0, 0, 0, 0),
-                                  songIndex: index,
-                                  thePlaying: _currentIndex == queue[index].id,
-                                  textAreaLength:
-                                      MediaQuery.of(context).size.width - 175,
-                                );
-                              }
-                            ),
+                                stream: AudioService.currentMediaItemStream,
+                                builder: (context, snapshot) {
+                                  return MusicListItem(
+                                    onClick: () async {
+                                      await AudioService.skipToQueueItem(
+                                          queue[index].id);
+                                    },
+                                    title: queue[index].title,
+                                    artist: queue[index].artist,
+                                    albumArt: queue[index]?.artUri?.path ?? '',
+                                    song: queue[index],
+                                    page: 'now_playing',
+                                    moreIconVisible: false,
+                                    titleTextColor: Colors.white,
+                                    subtitleTextColor: Colors.white,
+                                    color: Color.fromRGBO(0, 0, 0, 0),
+                                    songIndex: index,
+                                    thePlaying:
+                                        _currentIndex == queue[index].id,
+                                    textAreaLength:
+                                        MediaQuery.of(context).size.width - 175,
+                                  );
+                                }),
                           );
                         },
                       ));

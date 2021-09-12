@@ -68,12 +68,12 @@ class _AlbumItemState extends State<AlbumItem> {
     var queue = AudioService.queue;
 
     int index = AudioService.queue.indexWhere(
-      (element) => element.id == AudioService.currentMediaItem.id,
+      (element) {
+        return element.id == AudioService.currentMediaItem.id;
+      },
     );
     index++;
-
     queue.insertAll(index, mediaItemSongs);
-
     AudioService.updateQueue(queue);
   }
 
@@ -83,7 +83,7 @@ class _AlbumItemState extends State<AlbumItem> {
     AudioService.addQueueItems(mediaItemSongs);
   }
 
-  String hasImage = null;
+  String hasImage;
 
   @override
   Widget build(BuildContext context) {

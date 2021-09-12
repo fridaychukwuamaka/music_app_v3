@@ -29,16 +29,15 @@ class _SongTabState extends State<SongTab> {
     setState(() {
       songs = temp;
     });
-
-    //print(songs[9].hashCode);
   }
 
   ///this function plays the selected song
-  playSong(List<SongInfo> song, int index) async {
-    var temp = await kSongInfoToMediaItem(song[index], index);
+  Future<void> playSong(List<SongInfo> song, int index) async {
+    MediaItem temp = await kSongInfoToMediaItem(song[index], index);
     await AudioService.playMediaItem(temp);
     await AudioService.updateMediaItem(temp);
-    var list = kSongInfoListToMediaItemList(song, currentSongIndex: index);
+    List<MediaItem> list =
+        kSongInfoListToMediaItemList(song, currentSongIndex: index);
     list[index] = temp;
     await AudioService.updateQueue(list);
   }
@@ -67,8 +66,8 @@ class _SongTabState extends State<SongTab> {
                   song: songs[index],
                   songIndex: index,
                   songList: songs,
-                  onClick: () {
-                    playSong(songs, index);
+                  onClick: () async {
+                    await playSong(songs, index);
                   },
                   subtitleTextColor: Colors.black,
                   titleTextColor: Colors.black,

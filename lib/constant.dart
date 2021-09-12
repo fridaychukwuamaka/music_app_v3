@@ -49,12 +49,9 @@ Future<MediaItem> kSongInfoToMediaItem(SongInfo song, int index) async {
       'songId': song.id,
       'filePath': song.filePath,
       'index': id,
-      'songArt': await FlutterAudioQuery()
-          .getArtwork(id: song.id, type: ResourceType.SONG)
     },
   );
 
-  
   return mediaItem;
 }
 
@@ -65,11 +62,9 @@ List<MediaItem> kSongInfoListToMediaItemList(
   List<MediaItem> queue = [];
 
   queue = List.from(
-     songList.map(
-      (e)  {
+    songList.map(
+      (e) {
         final String id = uuid.v4();
-        // final Uint8List songArt = await FlutterAudioQuery()
-        //         .getArtwork(id: e.id, type: ResourceType.SONG);
         return MediaItem(
           id: id,
           album: e.album,

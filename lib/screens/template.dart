@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/cupertino.dart';
@@ -134,28 +135,34 @@ class _TemplatePageState extends State<TemplatePage>
                   width: MediaQuery.of(context).size.width,
                   child: Stack(
                     children: <Widget>[
-                      Positioned(
-                          child: Container(
-                        height: 280,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: artWork != null
-                                ? FileImage(
-                                    File(artWork),
-                                  )
-                                : AssetImage(kPlaceHolderImage),
-                            fit: BoxFit.cover,
-                          ),
-                          /* gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: <Color>[
-                              Color.fromRGBO(0, 0, 0, 0),
-                              Color.fromRGBO(0, 0, 0, 0.62),
-                            ],
-                          ), */
-                        ),
-                      )),
+                      FutureBuilder<Uint8List>(
+                          future: FlutterAudioQuery().getArtwork(
+                              type: typeOfTemplate == 'album'
+                                  ? ResourceType.ALBUM
+                                  : ResourceType.ARTIST,
+                              id: albumId),
+                          builder: (context, snapshot) {
+                            return Positioned(
+                                child: Container(
+                              height: 280,
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: snapshot.hasData && snapshot.data.isNotEmpty
+                                      ? MemoryImage(snapshot?.data)
+                                      : AssetImage(kPlaceHolderImage),
+                                  fit: BoxFit.cover,
+                                ),
+                                /* gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: <Color>[
+                                  Color.fromRGBO(0, 0, 0, 0),
+                                  Color.fromRGBO(0, 0, 0, 0.62),
+                                ],
+                              ), */
+                              ),
+                            ));
+                          }),
                       Positioned(
                         child: MusicAppBar(
                           title: '',
@@ -346,7 +353,8 @@ class _TemplatePageState extends State<TemplatePage>
                                     page: typeOfTemplate,
                                     textAreaLength:
                                         MediaQuery.of(context).size.width - 175,
-                                    thePlaying:  kIfSongIsPlaying(snapshot.data, songList[index].filePath),
+                                    thePlaying: kIfSongIsPlaying(snapshot.data,
+                                        songList[index].filePath),
                                   );
                                 },
                               );
@@ -392,7 +400,7 @@ class _TemplatePageState extends State<TemplatePage>
           ),
         ),
       ),
-      bottomNavigationBar:  StreamBuilder<MediaItem>(
+      bottomNavigationBar: StreamBuilder<MediaItem>(
         stream: AudioService.currentMediaItemStream,
         builder: (context, snapshot) {
           final MediaItem currentMediaItem = snapshot?.data;

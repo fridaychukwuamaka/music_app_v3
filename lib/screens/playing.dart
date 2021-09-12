@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:music_app_v3/screens/now_playing_page.dart';
 import '../constant.dart';
 import '../widgets/music_slider.dart';
@@ -36,13 +39,14 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
   bool loopAll = false;
   DateTime currentPosition;
   IconData loopIcon = Icons.repeat;
-  int t = 0;
-  bool shuffle = false;
+
   MediaItem currentMediaItem;
 
   MediaItem music;
   MediaItem shuffleMusic;
   int _count = 0;
+
+  bool shuffleMode = false;
 
   Future<List<SongInfo>> getSongFromPlaylist(PlaylistInfo playlist) async {
     List<SongInfo> song =
@@ -177,7 +181,7 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                         final PlaybackState playbackState =
                             sliderState.playbackState;
                         final Duration position = sliderState.position;
-                      
+
                         return Column(
                           children: [
                             MusicSlider(
@@ -205,12 +209,7 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                               sliderVal: sliderVal,
                               changing: changing,
                               favorite: favorite,
-                              onFavorite: () async {
-                                /*    await Provider.of<MusicService>(context,
-                                        listen: false)
-                                    .addSongToPlaylist(
-                                        '1', currentMediaItem.extras['songId']); */
-                              },
+                              onFavorite: () async {},
                               checkIfFavorite: () {},
                               playing: playbackState.playing,
                               currentMediaItem: currentMediaItem,
@@ -227,29 +226,66 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          IconButton(
-                            onPressed: () async {},
-                            icon: Icon(
-                              Icons.shuffle,
-                              color:
-                                  /*  shuffleMode != '0'
-                                  ? Colors.orange
-                                  : */
-                                  Colors.white,
-                              size: 22,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {},
-                            icon: Icon(
-                              /*  loopMode != '2' ? Icons.repeat :  */ Icons
-                                  .repeat_one,
-                              size: 22,
-                              color /* : loopMode != '0'
-                                  ? Colors.orange */
-                                  : Colors.white,
-                            ),
-                          ),
+                          ValueListenableBuilder(
+                              valueListenable: Hive.box('shuffle').listenable(),
+                              builder: (BuildContext context, Box value,
+                                  Widget child) {
+                                bool shuffle;
+                                if (value.isNotEmpty) {
+                                  shuffle = value.get('shuffle');
+                                }
+                                return IconButton(
+                                  onPressed: () async {
+                                    if (shuffle == true) {
+                                      value.put('shuffle', false);
+                                    } else {
+                                      value.put('shuffle', true);
+                                    }
+                                  },
+                                  icon: Icon(
+                                    Icons.shuffle,
+                                    color: shuffle == true
+                                        ? Colors.orange
+                                        : Colors.white,
+                                    size: 22,
+                                  ),
+                                );
+                              }),
+
+                          /// LOOP STATUS:
+                          /// 0: OFF
+                          /// 1: LOOPONE
+                          /// 2: LOOPALL
+                          ValueListenableBuilder(
+                              valueListenable: Hive.box('loop').listenable(),
+                              builder: (BuildContext context, Box value,
+                                  Widget child) {
+                                dynamic loop;
+                                if (value.isNotEmpty) {
+                                  loop = value.get('loop');
+                                }
+
+                                return IconButton(
+                                  onPressed: () async {
+                                    if (loop == '2') {
+                                      value.put('loop', '0');
+                                    } else if (loop == '1') {
+                                      value.put('loop', '2');
+                                    } else if (loop == '0') {
+                                      value.put('loop', '1');
+                                    }
+                                  },
+                                  icon: Icon(
+                                    loop != '2'
+                                        ? Icons.repeat
+                                        : Icons.repeat_one,
+                                    size: 22,
+                                    color: loop != '0' && loop != null
+                                        ? Colors.orange
+                                        : Colors.white,
+                                  ),
+                                );
+                              }),
                         ],
                       ),
                     ),
