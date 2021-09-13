@@ -94,9 +94,10 @@ class _AlbumItemState extends State<AlbumItem> {
         boxShadow: widget.albumArtwork != null
             ? [
                 BoxShadow(
-                    offset: Offset(0, 3),
-                    blurRadius: 6,
-                    color: Color.fromRGBO(0, 0, 0, 0.16))
+                  offset: Offset(0, 3),
+                  blurRadius: 6,
+                  color: Color.fromRGBO(0, 0, 0, 0.16),
+                )
               ]
             : null,
       ),
@@ -207,6 +208,9 @@ class _AlbumItemState extends State<AlbumItem> {
               ),
               onSelected: (value) async {
                 switch (value) {
+                  case 0:
+                    print(value);
+                    break;
                   case 1:
                     playNext();
                     break;

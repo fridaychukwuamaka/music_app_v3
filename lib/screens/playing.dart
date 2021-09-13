@@ -9,6 +9,7 @@ import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:music_app_v3/screens/now_playing_page.dart';
+import 'package:music_app_v3/utils/utils.dart';
 import '../constant.dart';
 import '../widgets/music_slider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -230,21 +231,57 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                               valueListenable: Hive.box('shuffle').listenable(),
                               builder: (BuildContext context, Box value,
                                   Widget child) {
-                                bool shuffle;
+                                bool isShuffled;
                                 if (value.isNotEmpty) {
-                                  shuffle = value.get('shuffle');
+                                  isShuffled = value.get('shuffle');
                                 }
                                 return IconButton(
                                   onPressed: () async {
-                                    if (shuffle == true) {
+                                    if (isShuffled == true) {
                                       value.put('shuffle', false);
+
+                                      var val = await Hive.box('initialSongs')
+                                          .get('initialSongs');
+
+                                      dynamic originalSong = json.decode(val);
+
+                                      originalSong = List<MediaItem>.from(
+                                          originalSong
+                                              .map((e) => MediaItem.fromJson(e))
+                                              .toList());
+
+                                      AudioService.updateQueue(originalSong);
                                     } else {
                                       value.put('shuffle', true);
+
+                                      String originalSong =
+                                          json.encode(AudioService.queue);
+
+                                      int index = AudioService.queue.indexWhere(
+                                          (element) =>
+                                              element.id ==
+                                              AudioService.currentMediaItem.id);
+
+                                      await Hive.box('initialSongs')
+                                          .put('initialSongs', originalSong);
+
+                                      List<MediaItem> shuffledSong =
+                                          shuffle(AudioService.queue);
+
+                                      shuffledSong.removeWhere((element) =>
+                                          element.id ==
+                                          AudioService.currentMediaItem.id);
+
+                                      shuffledSong.insert(
+                                          0, AudioService.currentMediaItem);
+
+                                      await AudioService.updateQueue(
+                                          shuffledSong);
                                     }
                                   },
                                   icon: Icon(
                                     Icons.shuffle,
-                                    color: shuffle == true
+                                    color: isShuffled == true
                                         ? Colors.orange
                                         : Colors.white,
                                     size: 22,
@@ -268,17 +305,23 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                                 return IconButton(
                                   onPressed: () async {
                                     if (loop == '2') {
-                                      value.put('loop', '0');
+                                      await value.put('loop', '0');
+                                      await AudioService.setRepeatMode(
+                                          AudioServiceRepeatMode.none);
                                     } else if (loop == '1') {
-                                      value.put('loop', '2');
-                                    } else if (loop == '0') {
-                                      value.put('loop', '1');
+                                      await value.put('loop', '2');
+                                      await AudioService.setRepeatMode(
+                                          AudioServiceRepeatMode.all);
+                                    } else if (loop == '0' || loop == null) {
+                                      await value.put('loop', '1');
+                                      await AudioService.setRepeatMode(
+                                          AudioServiceRepeatMode.one);
                                     }
                                   },
                                   icon: Icon(
-                                    loop != '2'
-                                        ? Icons.repeat
-                                        : Icons.repeat_one,
+                                    loop == '1'
+                                        ? Icons.repeat_one
+                                        : Icons.repeat,
                                     size: 22,
                                     color: loop != '0' && loop != null
                                         ? Colors.orange

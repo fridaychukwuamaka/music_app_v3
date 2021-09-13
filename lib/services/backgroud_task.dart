@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:music_app_v3/utils/utils.dart';
 
 ///Start background task
 Future onBackground() async {
+
   await AudioService.start(
     backgroundTaskEntrypoint: myBackgroundTaskEntrypoint,
     androidStopForegroundOnPause: true,
@@ -80,11 +84,16 @@ class MyBackgroundTask extends BackgroundAudioTask {
       switch (state) {
         case ProcessingState.completed:
           // when a song is completed it goes to the next one in the list if it is not the last element in the index
-          if (AudioServiceBackground.queue.last.id ==
-              AudioServiceBackground.mediaItem.id) {
-            _player.stop();
-          } else if (loopMode == AudioServiceRepeatMode.one) {
+          if (loopMode == AudioServiceRepeatMode.one) {
             repeatOneSong();
+          } else if (AudioServiceBackground.queue.last.id ==
+                  AudioServiceBackground.mediaItem.id &&
+              loopMode == AudioServiceRepeatMode.none) {
+            _player.stop();
+          } else if (AudioServiceBackground.queue.last.id ==
+                  AudioServiceBackground.mediaItem.id &&
+              loopMode == AudioServiceRepeatMode.all) {
+            repeatFromBegining();
           } else {
             onSkipToNext();
           }
@@ -99,7 +108,22 @@ class MyBackgroundTask extends BackgroundAudioTask {
           break;
       }
     });
+    AudioServiceBackground.setQueue([]);
     return super.onStart(params);
+  }
+
+  Future<void> repeatFromBegining() async {
+    int index = 0;
+    MediaItem mediaItem = AudioServiceBackground.queue[index];
+
+    onPlayMediaItem(mediaItem);
+
+    AudioServiceBackground.setMediaItem(mediaItem);
+  }
+
+  @override
+  Future<void> onClick(MediaButton button) {
+    return super.onClick(button);
   }
 
   @override

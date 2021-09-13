@@ -11,8 +11,9 @@ Future<void> initHive() async {
   final appDocumentDir = await getApplicationDocumentsDirectory();
   Hive.init(appDocumentDir.path);
   Hive.initFlutter();
-  // await Hive.openBox('playingAlbum');
+  await Hive.openBox('playingAlbum');
   await Hive.openBox('shuffle');
+  await Hive.openBox('initialSongs');
   await Hive.openBox('loop');
   await Hive.openBox('playlist');
   // await Hive.openBox('currentIndex');

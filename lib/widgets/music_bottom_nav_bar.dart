@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:music_app_v3/screens/playing.dart';
+import 'package:music_app_v3/utils/utils.dart';
 import 'package:music_app_v3/widgets/circular_music_button.dart';
 
 class MusicBottomNavBar extends StatelessWidget {

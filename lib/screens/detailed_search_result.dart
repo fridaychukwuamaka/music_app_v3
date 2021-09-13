@@ -199,13 +199,15 @@ class _DetailedSearchResultState extends State<DetailedSearchResult>
                                 thePlaying: currentMediaItem?.id ==
                                     widget.list[index].filePath,
                                 onClick: () async {
-                                 /*  await Provider.of<MusicService>(context,
+                                  /*  await Provider.of<MusicService>(context,
                                           listen: false)
                                       .updateBackgroundQueue(widget.list);
 
                                   AudioService.skipToQueueItem(
                                       widget.list[index].filePath); */
-                                }, subtitleTextColor: null,
+                                },
+                                subtitleTextColor: Colors.black,
+                                titleTextColor: Colors.black,
                               );
                             },
                           ),
@@ -252,8 +254,7 @@ class _DetailedSearchResultState extends State<DetailedSearchResult>
                                             : widget.list[index].name,
                                     artWork: widget.type == 'artist'
                                         ? widget.list[index].artistArtPath
-                                        : widget.type == 'album'
-                                           ,
+                                        : widget.type == 'album',
                                     albumIndex: index,
                                     typeOfTemplate: widget.type,
                                     toTemplateList: widget.list,
@@ -270,20 +271,11 @@ class _DetailedSearchResultState extends State<DetailedSearchResult>
                                 typeOfAlbumItem: widget.type,
                                 item: widget.list[index],
                                 index: index,
-                                /* onShuffle: widget.type == 'artist'
-                                  ? onShuffleArtist
-                                  : widget.type == 'album'
-                                      ? onShuffleAlbum
-                                      : onShufflePlaylist, */
-                                albumArtwork: widget.type == 'artist'
-                                    ? widget.list[index].artistArtPath
-                                    : widget.type == 'playlist',
-                                      
                                 playButton: true,
                                 icon: _albumIcon(playingAlbum,
                                     widget.list[index], widget.type),
                                 onPressed: () async {
-                                 /*  dynamic songList;
+                                  /*  dynamic songList;
                                   switch (widget.type) {
                                     case 'artist':
                                       songList =

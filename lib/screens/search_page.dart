@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:music_app_v3/models/playlist_data.dart';
+import 'package:music_app_v3/screens/detailed_search_result.dart';
 import 'package:music_app_v3/services/playlist.dart';
 import 'package:music_app_v3/widgets/album_item.dart';
 import 'package:music_app_v3/widgets/music_list_item.dart';
@@ -142,16 +143,31 @@ class SearchPage extends SearchDelegate {
                     songs.length > 5
                         ? Align(
                             alignment: Alignment.centerRight,
-                            child: Text(
-                              '${songs.length - 5} more',
-                              textScaleFactor: 0.9,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .button
-                                  .copyWith(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute<void>(
+                                    builder: (BuildContext context) =>
+                                        DetailedSearchResult(
+                                      title: 'Songs',
+                                      type: 'songs',
+                                      list: songs,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                '${songs.length - 5} more',
+                                textScaleFactor: 0.9,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .button
+                                    .copyWith(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black),
+                              ),
                             ),
                           )
                         : SizedBox.shrink(),
@@ -194,7 +210,7 @@ class SearchPage extends SearchDelegate {
                         crossAxisSpacing: 25,
                         mainAxisSpacing: 25,
                       ),
-                      itemCount: albums.length > 5 ? 5 : albums.length,
+                      itemCount: albums.length > 4 ? 4 : albums.length,
                       itemBuilder: (context, index) => AlbumItem(
                         playButton: true,
                         borderRadius: BorderRadius.circular(5),
@@ -205,19 +221,37 @@ class SearchPage extends SearchDelegate {
                         item: albums[index],
                       ),
                     ),
-                    albums.length > 5
+                    SizedBox(
+                      height: 20,
+                    ),
+                    albums.length > 4
                         ? Align(
                             alignment: Alignment.centerRight,
-                            child: Text(
-                              '${albums.length - 5} more',
-                              textScaleFactor: 0.9,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .button
-                                  .copyWith(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute<void>(
+                                    builder: (BuildContext context) =>
+                                        DetailedSearchResult(
+                                      title: 'Albums',
+                                      type: 'album',
+                                      list: albums,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                '${albums.length - 4} more',
+                                textScaleFactor: 0.9,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .button
+                                    .copyWith(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black),
+                              ),
                             ),
                           )
                         : SizedBox.shrink(),
