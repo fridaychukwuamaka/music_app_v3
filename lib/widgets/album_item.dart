@@ -4,8 +4,11 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
+import 'package:hive/hive.dart';
 import 'package:music_app_v3/constant.dart';
 import 'package:music_app_v3/models/playlist_data.dart';
+import 'package:music_app_v3/utils/utils.dart';
+import 'package:music_app_v3/widgets/music_playlist_modal.dart';
 
 class AlbumItem extends StatefulWidget {
   const AlbumItem({
@@ -43,6 +46,29 @@ class AlbumItem extends StatefulWidget {
 }
 
 class _AlbumItemState extends State<AlbumItem> {
+  Future shuffleAndPlaySong() async {
+    bool isShuffle = await Hive.box('shuffle').get('shuffle');
+    // checks if the sheffle state is true if true it makes it false
+    if (isShuffle == true) {
+      await Hive.box('shuffle').put('shuffle', false);
+    }
+    var songs = await getSongFromItem();
+
+    MediaItem temp = await kSongInfoToMediaItem(songs[0], 0);
+
+    await AudioService.playMediaItem(temp);
+
+    await AudioService.updateMediaItem(temp);
+
+    List<MediaItem> list =
+        kSongInfoListToMediaItemList(songs, currentSongIndex: 0);
+    list[0] = temp;
+
+    List<MediaItem> shuffledSong = shuffle(list);
+
+    await AudioService.updateQueue(shuffledSong);
+  }
+
   Future getSongFromItem() async {
     switch (widget.typeOfAlbumItem) {
       case 'album':
@@ -209,13 +235,23 @@ class _AlbumItemState extends State<AlbumItem> {
               onSelected: (value) async {
                 switch (value) {
                   case 0:
-                    print(value);
+                    shuffleAndPlaySong();
                     break;
                   case 1:
                     playNext();
                     break;
                   case 2:
                     addToQueue();
+                    break;
+                  case 3:
+                    var songs = await getSongFromItem() as List<SongInfo>;
+                    showModalBottomSheet(
+                      context: context,
+                      backgroundColor: Colors.transparent,
+                      builder: (BuildContext context) => MusicPlaylistModal(
+                        songIds: songs.map((e) => e.id).toList(),
+                      ),
+                    );
                     break;
                   default:
                 }

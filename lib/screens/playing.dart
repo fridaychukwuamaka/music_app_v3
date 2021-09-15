@@ -257,11 +257,6 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                                       String originalSong =
                                           json.encode(AudioService.queue);
 
-                                      int index = AudioService.queue.indexWhere(
-                                          (element) =>
-                                              element.id ==
-                                              AudioService.currentMediaItem.id);
-
                                       await Hive.box('initialSongs')
                                           .put('initialSongs', originalSong);
 

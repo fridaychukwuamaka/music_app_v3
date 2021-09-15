@@ -9,8 +9,6 @@ import 'package:music_app_v3/widgets/album_item.dart';
 import 'package:music_app_v3/widgets/music_app_bar.dart';
 import 'package:music_app_v3/widgets/music_list_item.dart';
 
-import 'package:provider/provider.dart';
-
 import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 
