@@ -43,7 +43,7 @@ class _ArtistTabState extends State<ArtistTab> {
     var temp = await kSongInfoToMediaItem(songs[index], 0);
     await AudioService.playMediaItem(temp);
     await AudioService.updateMediaItem(temp);
-    var list = kSongInfoListToMediaItemList(songs, currentSongIndex: 0);
+    var list = await kSongInfoListToMediaItemList(songs, currentSongIndex: 0);
     list[index] = temp;
     await AudioService.updateQueue(list);
   }

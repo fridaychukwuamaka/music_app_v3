@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:music_app_v3/models/playlist_data.dart';
 import 'package:music_app_v3/services/playlist.dart';
 import 'package:music_app_v3/widgets/playlist_modal.dart';
 import '../constant.dart';

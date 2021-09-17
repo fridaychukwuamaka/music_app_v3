@@ -63,12 +63,10 @@ class _PlaylistTabState extends State<PlaylistTab> {
     var temp = await kSongInfoToMediaItem(songs[index], 0);
     await AudioService.playMediaItem(temp);
     await AudioService.updateMediaItem(temp);
-    var list = kSongInfoListToMediaItemList(songs, currentSongIndex: 0);
-     list[index] = temp;
+    var list = await kSongInfoListToMediaItemList(songs, currentSongIndex: 0);
+    list[index] = temp;
     await AudioService.updateQueue(list);
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +104,7 @@ class _PlaylistTabState extends State<PlaylistTab> {
               },
               child: AlbumItem(
                 playButton: true,
-                item:  playlist[index],
+                item: playlist[index],
                 typeOfAlbumItem: 'playlist',
                 onPressed: () async {
                   playSong(playlist[index].id);

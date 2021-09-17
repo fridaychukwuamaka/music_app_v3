@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
@@ -12,7 +11,6 @@ import 'package:music_app_v3/services/backgroud_task.dart';
 import 'package:music_app_v3/utils/utils.dart';
 import 'package:music_app_v3/widgets/music_app_bar.dart';
 import 'package:music_app_v3/widgets/music_bottom_nav_bar.dart';
-
 import 'search_page.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -48,7 +46,10 @@ class _MyHomePageState extends State<MyHomePage>
 
   setRunningStream() {
     audioServiceRunning = AudioService.runningStream.listen((event) {
-      if (event && setupLoop == false) {
+      if (!event) {
+        onBackground();
+      }
+     if (event && setupLoop == false) {
         setLoopMode();
         setupLoop = true;
       }
@@ -61,10 +62,14 @@ class _MyHomePageState extends State<MyHomePage>
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          children: [],
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: <Widget>[
@@ -73,23 +78,27 @@ class _MyHomePageState extends State<MyHomePage>
             ),
             Padding(
               padding: const EdgeInsets.only(top: 5.0, left: 15, right: 15),
-              child: MusicAppBar(
-                title: 'My music',
-                iconSize: 16,
-                leadingIcon: FeatherIcons.menu,
-                trailingIcon: FeatherIcons.search,
-                padding: false,
-                onleadingIconPressed: () async {},
-                ontralingIconPressed: () async {
-                  var t = await showSearch(
-                    context: context,
-                    delegate: SearchPage(),
-                  );
-                  if (t == true) {
-                    // Provider.of<MusicService>(context).clearSearchArray();
-                  }
-                },
-              ),
+              child: Builder(builder: (context) {
+                return MusicAppBar(
+                  title: 'My music',
+                  iconSize: 16,
+                  leadingIcon: FeatherIcons.menu,
+                  trailingIcon: FeatherIcons.search,
+                  padding: false,
+                  onleadingIconPressed: () async {
+                    Scaffold.of(context).openDrawer();
+                  },
+                  ontralingIconPressed: () async {
+                    var t = await showSearch(
+                      context: context,
+                      delegate: SearchPage(),
+                    );
+                    if (t == true) {
+                      // Provider.of<MusicService>(context).clearSearchArray();
+                    }
+                  },
+                );
+              }),
             ),
             SizedBox(
               height: 35,

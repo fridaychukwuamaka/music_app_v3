@@ -25,7 +25,8 @@ class _SongTabState extends State<SongTab> {
 
   ///This function get the songs on the device
   getSongList() async {
-    var temp = await audioQuery.getSongs();
+    var temp =
+        await audioQuery.getSongs(sortType: SongSortType.CURRENT_IDs_ORDER);
     setState(() {
       songs = temp;
     });
@@ -37,7 +38,7 @@ class _SongTabState extends State<SongTab> {
     await AudioService.playMediaItem(temp);
     await AudioService.updateMediaItem(temp);
     List<MediaItem> list =
-        kSongInfoListToMediaItemList(song, currentSongIndex: index);
+        await kSongInfoListToMediaItemList(song, currentSongIndex: index);
     list[index] = temp;
     await AudioService.updateQueue(list);
   }

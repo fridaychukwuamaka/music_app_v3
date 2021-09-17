@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
@@ -61,7 +60,7 @@ class _AlbumItemState extends State<AlbumItem> {
     await AudioService.updateMediaItem(temp);
 
     List<MediaItem> list =
-        kSongInfoListToMediaItemList(songs, currentSongIndex: 0);
+        await kSongInfoListToMediaItemList(songs, currentSongIndex: 0);
     list[0] = temp;
 
     List<MediaItem> shuffledSong = shuffle(list);
@@ -90,7 +89,7 @@ class _AlbumItemState extends State<AlbumItem> {
 
   playNext() async {
     List<SongInfo> songs = await getSongFromItem();
-    List<MediaItem> mediaItemSongs = kSongInfoListToMediaItemList(songs);
+    List<MediaItem> mediaItemSongs = await kSongInfoListToMediaItemList(songs);
     var queue = AudioService.queue;
 
     int index = AudioService.queue.indexWhere(
@@ -105,7 +104,7 @@ class _AlbumItemState extends State<AlbumItem> {
 
   addToQueue() async {
     List<SongInfo> songs = await getSongFromItem();
-    List<MediaItem> mediaItemSongs = kSongInfoListToMediaItemList(songs);
+    List<MediaItem> mediaItemSongs = await kSongInfoListToMediaItemList(songs);
     AudioService.addQueueItems(mediaItemSongs);
   }
 

@@ -9,13 +9,11 @@ import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:music_app_v3/constant.dart';
-import 'package:music_app_v3/models/music_bar_state.dart';
 import 'package:music_app_v3/models/playlist_data.dart';
 import 'package:music_app_v3/services/playlist.dart';
 import 'package:music_app_v3/widgets/music_app_bar.dart';
 import 'package:music_app_v3/widgets/music_bottom_nav_bar.dart';
 import 'package:music_app_v3/widgets/music_list_item.dart';
-import 'package:rxdart/rxdart.dart';
 
 class PlaylistTemplatePage extends StatefulWidget {
   final String typeOfTemplate;
@@ -95,7 +93,8 @@ class _PlaylistTemplatePageState extends State<PlaylistTemplatePage>
     var temp = await kSongInfoToMediaItem(song[index], index);
     await AudioService.playMediaItem(temp);
     await AudioService.updateMediaItem(temp);
-    var list = kSongInfoListToMediaItemList(song, currentSongIndex: index);
+    var list =
+        await kSongInfoListToMediaItemList(song, currentSongIndex: index);
     await AudioService.updateQueue(list);
   }
 
@@ -395,7 +394,7 @@ class _PlaylistTemplatePageState extends State<PlaylistTemplatePage>
         builder: (context, snapshot) {
           final MediaItem currentMediaItem = snapshot?.data;
 
-           if (currentMediaItem != null) {
+          if (currentMediaItem != null) {
             return MusicBottomNavBar(
               currentAlbumArt: currentMediaItem?.artUri?.path ?? '',
               currentArtist: currentMediaItem?.artist ?? '',

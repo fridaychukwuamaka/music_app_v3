@@ -1,6 +1,7 @@
+import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:uuid/uuid.dart';
 
@@ -35,17 +36,23 @@ extension CapExtension on String {
 
 Future<MediaItem> kSongInfoToMediaItem(SongInfo song, int index) async {
   final String id = uuid.v4();
+
+  var img = await audioQuery.getArtwork(type: ResourceType.SONG, id: song.id);
+
+  final tempDir = await getTemporaryDirectory();
+  final file = await new File('${tempDir.path}/${song.id}.jpg').create();
+  file.writeAsBytesSync(img, mode: FileMode.append);
+
   MediaItem mediaItem = MediaItem(
     id: id,
     album: song.album,
     title: song.title,
     artist: song.artist,
-    artUri: Uri.parse(song.albumArtwork != null
-        ? File(song.albumArtwork).uri.toString()
-        : ''),
+    artUri: file.uri,
     duration: Duration(milliseconds: int.parse(song.duration)),
     extras: {
       'albumId': song.albumId,
+      'artistId': song.artistId,
       'songId': song.id,
       'filePath': song.filePath,
       'index': id,
@@ -55,36 +62,36 @@ Future<MediaItem> kSongInfoToMediaItem(SongInfo song, int index) async {
   return mediaItem;
 }
 
-List<MediaItem> kSongInfoListToMediaItemList(
+Future<List<MediaItem>> kSongInfoListToMediaItemList(
   List<SongInfo> songList, {
   int currentSongIndex,
-}) {
+}) async {
   List<MediaItem> queue = [];
 
-  queue = List.from(
-    songList.map(
-      (e) {
-        final String id = uuid.v4();
-        return MediaItem(
-          id: id,
-          album: e.album,
-          title: e.title,
-          artist: e.artist,
-          artUri: Uri.parse(e.albumArtwork != null
-              ? File(e.albumArtwork).uri.toString()
-              : ''),
-          duration: Duration(milliseconds: int.parse(e.duration)),
-          extras: {
-            'albumId': e.albumId,
-            'songId': e.id,
-            'filePath': e.filePath,
-            'index': id,
-            // 'songArt': songArt
-          },
-        );
+  queue = await Stream.fromIterable(songList).asyncMap((e) async {
+    final String id = uuid.v4();
+    var img = await audioQuery.getArtwork(type: ResourceType.SONG, id: e.id);
+
+    final tempDir = await getTemporaryDirectory();
+    final file = await new File('${tempDir.path}/${e.id}.jpg').create();
+    file.writeAsBytesSync(img, mode: FileMode.append);
+
+    return MediaItem(
+      id: id,
+      album: e.album,
+      title: e.title,
+      artist: e.artist,
+      artUri: file.uri,
+      duration: Duration(milliseconds: int.parse(e.duration)),
+      extras: {
+        'albumId': e.albumId,
+        'songId': e.id,
+        'artistId': e.artistId,
+        'filePath': e.filePath,
+        'index': id,
       },
-    ),
-  );
+    );
+  }).toList();
 
   return queue;
 }

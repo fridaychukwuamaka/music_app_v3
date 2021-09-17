@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/cupertino.dart';
@@ -171,119 +170,127 @@ class MusicListItem extends StatelessWidget {
                         ),
                       )
                     : SizedBox.shrink(),
-                PopupMenuButton(
-                  icon: !moreIconVisible
-                      ? SizedBox.shrink()
-                      : Icon(
-                          Icons.more_vert,
-                          size: 20,
-                          color: subtitleTextColor == null
-                              ? Colors.black
-                              : subtitleTextColor,
-                        ),
-                  onSelected: (value) async {
-                    switch (value) {
-                      case 0:
-                        await playNext();
-                        break;
-                      case 1:
-                        addToQueue();
-                        break;
-                      case 5:
-                        showModalBottomSheet(
-                          context: context,
-                          backgroundColor: Colors.transparent,
-                          builder: (BuildContext context) => MusicPlaylistModal(
-                            songIds: [song.id],
+                SizedBox(
+                  width: 10,
+                ),
+                SizedBox(
+                  width: 35,
+                  child: PopupMenuButton(
+                    icon: !moreIconVisible
+                        ? SizedBox.shrink()
+                        : Icon(
+                            Icons.more_vert,
+                            size: 20,
+                            color: subtitleTextColor == null
+                                ? Colors.black
+                                : subtitleTextColor,
                           ),
-                        );
-                        break;
-                      default:
-                    }
-                  },
-                  itemBuilder: (BuildContext context) {
-                    return <PopupMenuEntry>[
-                      PopupMenuItem(
-                        child: Text(
-                          'Play next',
-                          textScaleFactor: 0.9,
+                    onSelected: (value) async {
+                      switch (value) {
+                        case 0:
+                          await playNext();
+                          break;
+                        case 1:
+                          addToQueue();
+                          break;
+                        case 5:
+                          showModalBottomSheet(
+                            context: context,
+                            backgroundColor: Colors.transparent,
+                            builder: (BuildContext context) =>
+                                MusicPlaylistModal(
+                              songIds: [song.id],
+                            ),
+                          );
+                          break;
+                        default:
+                      }
+                    },
+                    itemBuilder: (BuildContext context) {
+                      return <PopupMenuEntry>[
+                        PopupMenuItem(
+                          child: Text(
+                            'Play next',
+                            textScaleFactor: 0.9,
+                          ),
+                          value: 0,
                         ),
-                        value: 0,
-                      ),
-                      PopupMenuDivider(),
-                      PopupMenuItem(
-                        child: Text(
-                          'Add to queue',
-                          textScaleFactor: 0.9,
+                        PopupMenuDivider(),
+                        PopupMenuItem(
+                          child: Text(
+                            'Add to queue',
+                            textScaleFactor: 0.9,
+                          ),
+                          value: 1,
                         ),
-                        value: 1,
-                      ),
-                      PopupMenuDivider(),
-                      PopupMenuItem(
-                        child: Text(
-                          'Add to playlist',
-                          textScaleFactor: 0.9,
+                        PopupMenuDivider(),
+                        PopupMenuItem(
+                          child: Text(
+                            'Add to playlist',
+                            textScaleFactor: 0.9,
+                          ),
+                          value: 5,
                         ),
-                        value: 5,
-                      ),
-                      PopupMenuDivider(),
-                      page == 'now_playing'
-                          ? PopupMenuItem(
-                              child: Text(
-                                'Remove from queue',
-                                textScaleFactor: 0.9,
+                        PopupMenuDivider(),
+                        page == 'now_playing'
+                            ? PopupMenuItem(
+                                child: Text(
+                                  'Remove from queue',
+                                  textScaleFactor: 0.9,
+                                ),
+                                value: 3,
+                              )
+                            : PopupMenuItem(
+                                child: SizedBox.shrink(),
+                                height: 0,
                               ),
-                              value: 3,
-                            )
-                          : PopupMenuItem(
-                              child: SizedBox.shrink(),
-                              height: 0,
-                            ),
-                      page == 'now_playing'
-                          ? PopupMenuDivider()
-                          : PopupMenuItem(
-                              child: SizedBox.shrink(),
-                              height: 0,
-                            ),
-                      PopupMenuItem(
-                        child: Text(
-                          'Show Album',
-                          textScaleFactor: 0.9,
+                        page == 'now_playing'
+                            ? PopupMenuDivider()
+                            : PopupMenuItem(
+                                child: SizedBox.shrink(),
+                                height: 0,
+                              ),
+                        PopupMenuItem(
+                          child: Text(
+                            'Show Album',
+                            textScaleFactor: 0.9,
+                          ),
+                          value: 2,
                         ),
-                        value: 2,
-                      ),
-                      page == 'playlist'
-                          ? PopupMenuDivider()
-                          : PopupMenuItem(
-                              child: SizedBox.shrink(),
-                              height: 0,
-                            ),
-                      page == 'playlist'
-                          ? PopupMenuItem(
-                              child: Text(
-                                'Remove from playlist',
-                                textScaleFactor: 0.9,
+                        page == 'playlist'
+                            ? PopupMenuDivider()
+                            : PopupMenuItem(
+                                child: SizedBox.shrink(),
+                                height: 0,
                               ),
-                              value: 4,
-                            )
-                          : PopupMenuItem(height: 0, child: SizedBox.shrink()),
-                      page != 'now_playing'
-                          ? PopupMenuDivider()
-                          : PopupMenuItem(
-                              child: SizedBox.shrink(),
-                              height: 0,
-                            ),
-                      page != 'now_playing'
-                          ? PopupMenuItem(
-                              child: Text(
-                                'Delete',
-                                textScaleFactor: 0.9,
+                        page == 'playlist'
+                            ? PopupMenuItem(
+                                child: Text(
+                                  'Remove from playlist',
+                                  textScaleFactor: 0.9,
+                                ),
+                                value: 4,
+                              )
+                            : PopupMenuItem(
+                                height: 0, child: SizedBox.shrink()),
+                        page != 'now_playing'
+                            ? PopupMenuDivider()
+                            : PopupMenuItem(
+                                child: SizedBox.shrink(),
+                                height: 0,
                               ),
-                              value: 6,
-                            )
-                          : PopupMenuItem(child: SizedBox.shrink()),
-                    ];
-                  },
+                        page != 'now_playing'
+                            ? PopupMenuItem(
+                                child: Text(
+                                  'Delete',
+                                  textScaleFactor: 0.9,
+                                ),
+                                value: 6,
+                              )
+                            : PopupMenuItem(child: SizedBox.shrink()),
+                      ];
+                    },
+                  ),
                 ),
               ],
             )

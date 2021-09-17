@@ -1,15 +1,13 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:math';
-
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
+import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:music_app_v3/utils/utils.dart';
+
+FlutterAudioQuery _query = FlutterAudioQuery();
 
 ///Start background task
 Future onBackground() async {
-
   await AudioService.start(
     backgroundTaskEntrypoint: myBackgroundTaskEntrypoint,
     androidStopForegroundOnPause: true,
@@ -127,7 +125,8 @@ class MyBackgroundTask extends BackgroundAudioTask {
   }
 
   @override
-  Future<void> onUpdateMediaItem(MediaItem mediaItem) {
+  Future<void> onUpdateMediaItem(MediaItem mediaItem) async {
+    print('hide:: ${mediaItem.artUri}');
     AudioServiceBackground.setMediaItem(mediaItem);
     return super.onUpdateMediaItem(mediaItem);
   }

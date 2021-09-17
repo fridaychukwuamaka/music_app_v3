@@ -29,6 +29,7 @@ Future<void> main() async {
           ChangeNotifierProvider(
             create: (context) => MusicService(),
           ),
+        
         ],
         child: MyApp(),
       ),

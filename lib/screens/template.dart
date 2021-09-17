@@ -1,18 +1,14 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
-
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:music_app_v3/constant.dart';
-import 'package:music_app_v3/models/music_bar_state.dart';
 import 'package:music_app_v3/widgets/music_app_bar.dart';
 import 'package:music_app_v3/widgets/music_bottom_nav_bar.dart';
 import 'package:music_app_v3/widgets/music_list_item.dart';
-import 'package:rxdart/rxdart.dart';
 
 class TemplatePage extends StatefulWidget {
   static String id = '/dfjj';
@@ -68,7 +64,8 @@ class _TemplatePageState extends State<TemplatePage>
     var temp = await kSongInfoToMediaItem(song[index], index);
     await AudioService.playMediaItem(temp);
     await AudioService.updateMediaItem(temp);
-    var list = kSongInfoListToMediaItemList(song, currentSongIndex: index);
+    var list =
+        await kSongInfoListToMediaItemList(song, currentSongIndex: index);
     await AudioService.updateQueue(list);
   }
 
@@ -95,6 +92,33 @@ class _TemplatePageState extends State<TemplatePage>
       setState(() {
         songList.add(value);
       });
+    }
+  }
+
+  IconData setIcon(MediaItem mediaItem) {
+    String albumId = '';
+    if (widget.typeOfTemplate == 'album') {
+      print(widget.albumId);
+      print('fgfgkkdfkm');
+      albumId = mediaItem.extras['albumId'];
+      albumId = mediaItem.extras['albumId'];
+      if (albumId != widget.albumId) {
+        return Icons.play_arrow;
+      } else {
+        return Icons.pause;
+      }
+    } else if (widget.typeOfTemplate == 'artist') {
+      print(widget.albumId);
+      print('fgfgkkdfkm');
+      albumId = mediaItem.extras['artistId'];
+      print(albumId);
+      if (albumId != widget.albumId) {
+        return Icons.play_arrow;
+      } else {
+        return Icons.pause;
+      }
+    } else {
+      return Icons.play_arrow;
     }
   }
 
@@ -147,7 +171,8 @@ class _TemplatePageState extends State<TemplatePage>
                               height: 280,
                               decoration: BoxDecoration(
                                 image: DecorationImage(
-                                  image: snapshot.hasData && snapshot.data.isNotEmpty
+                                  image: snapshot.hasData &&
+                                          snapshot.data.isNotEmpty
                                       ? MemoryImage(snapshot?.data)
                                       : AssetImage(kPlaceHolderImage),
                                   fit: BoxFit.cover,
@@ -168,7 +193,7 @@ class _TemplatePageState extends State<TemplatePage>
                           title: '',
                           iconSize: 16,
                           leadingIcon: FeatherIcons.arrowLeft,
-                          trailingIcon: FeatherIcons.moreVertical,
+                          trailingIcon: FeatherIcons.sliders,
                           padding: true,
                           onleadingIconPressed: () {
                             Navigator.of(context).pop();
@@ -316,53 +341,47 @@ class _TemplatePageState extends State<TemplatePage>
                 ),
               ),
               Positioned(
+                top: 280,
                 bottom: 0,
-                child: Container(
-                  height: MediaQuery.of(context).size.height - 369,
-                  width: MediaQuery.of(context).size.width,
-                  child: Column(
-                    children: <Widget>[
-                      Container(
-                        height: MediaQuery.of(context).size.height - 369,
-                        width: MediaQuery.of(context).size.width,
-                        child: StreamBuilder<MediaItem>(
-                            stream: AudioService.currentMediaItemStream,
-                            builder: (context, snapshot) {
-                              return ListView.builder(
-                                padding: EdgeInsets.only(
-                                    top: 40, left: 20, right: 20, bottom: 20),
-                                itemCount: songList.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  return MusicListItem(
-                                    onClick: () {
-                                      playSong(songList, index);
-                                    },
-                                    subtitleTextColor: Colors.black,
-                                    titleTextColor: Colors.black,
-                                    title: songList[index].title,
-                                    artist: songList[index].artist,
-                                    color: Color(0xFFE6E6E6),
-                                    iconColor: Color(0xFF5C5C5C),
-                                    albumArt: songList[index].albumArtwork !=
-                                                null &&
-                                            songList[index].albumArtwork != null
-                                        ? songList[index].albumArtwork
-                                        : null,
-                                    song: songList[index],
-                                    songIndex: index,
-                                    page: typeOfTemplate,
-                                    textAreaLength:
-                                        MediaQuery.of(context).size.width - 175,
-                                    thePlaying: kIfSongIsPlaying(snapshot.data,
-                                        songList[index].filePath),
-                                  );
-                                },
-                              );
-                            }),
-                      ),
-                    ],
-                  ),
-                ),
+                left: 0,
+                right: 0,
+                child: StreamBuilder<MediaItem>(
+                    stream: AudioService.currentMediaItemStream,
+                    builder: (context, snapshot) {
+                      return SizedBox(
+                        height: double.infinity,
+                        width: double.infinity,
+                        child: ListView.builder(
+                          padding: EdgeInsets.only(
+                              top: 25, left: 20, right: 20, bottom: 10),
+                          itemCount: songList.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return MusicListItem(
+                              onClick: () {
+                                playSong(songList, index);
+                              },
+                              subtitleTextColor: Colors.black,
+                              titleTextColor: Colors.black,
+                              title: songList[index].title,
+                              artist: songList[index].artist,
+                              color: Color(0xFFE6E6E6),
+                              iconColor: Color(0xFF5C5C5C),
+                              albumArt: songList[index].albumArtwork != null &&
+                                      songList[index].albumArtwork != null
+                                  ? songList[index].albumArtwork
+                                  : null,
+                              song: songList[index],
+                              songIndex: index,
+                              page: typeOfTemplate,
+                              textAreaLength:
+                                  MediaQuery.of(context).size.width - 175,
+                              thePlaying: kIfSongIsPlaying(
+                                  snapshot.data, songList[index].filePath),
+                            );
+                          },
+                        ),
+                      );
+                    }),
               ),
               Positioned(
                   top: 255,
@@ -372,9 +391,9 @@ class _TemplatePageState extends State<TemplatePage>
                     onTap: () async {
                       playSong(songList, 0);
                     },
-                    child: StreamBuilder<PlaybackState>(
-                        initialData: AudioService.playbackState,
-                        stream: AudioService.playbackStateStream,
+                    child: StreamBuilder<MediaItem>(
+                        initialData: AudioService.currentMediaItem,
+                        stream: AudioService.currentMediaItemStream,
                         builder: (context, snapshot) {
                           return Container(
                             height: 45,
@@ -389,7 +408,7 @@ class _TemplatePageState extends State<TemplatePage>
                                       blurRadius: 4)
                                 ]),
                             child: Icon(
-                              Icons.play_arrow,
+                              setIcon(snapshot?.data),
                               color: Colors.white,
                               size: 22,
                             ),

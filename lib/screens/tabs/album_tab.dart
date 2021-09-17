@@ -38,7 +38,7 @@ class _AlbumTabState extends State<AlbumTab> {
     var temp = await kSongInfoToMediaItem(songs[index], 0);
     await AudioService.playMediaItem(temp);
     await AudioService.updateMediaItem(temp);
-    var list = kSongInfoListToMediaItemList(songs, currentSongIndex: 0);
+    var list = await kSongInfoListToMediaItemList(songs, currentSongIndex: 0);
     list[index] = temp;
     await AudioService.updateQueue(list);
   }
@@ -87,13 +87,16 @@ class _AlbumTabState extends State<AlbumTab> {
                     return AlbumItem(
                       playButton: true,
                       item: albums[index],
+                      
                       typeOfAlbumItem: 'album',
                       onPressed: () async {
                         playSong(index);
                       },
-                      icon: snapshot.hasData && snapshot.data.extras['albumId'] == albums[index].id
+                      icon: snapshot.hasData &&
+                              snapshot.data.extras['albumId'] ==
+                                  albums[index].id
                           ? Icons.pause
-                          :Icons.play_arrow,
+                          : Icons.play_arrow,
                       title: albums[index].title,
                       albumArtwork: albums[index].albumArt,
                       borderRadius: BorderRadius.circular(5),

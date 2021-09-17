@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -45,7 +44,6 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
 
   MediaItem music;
   MediaItem shuffleMusic;
-  int _count = 0;
 
   bool shuffleMode = false;
 
