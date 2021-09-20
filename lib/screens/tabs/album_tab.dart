@@ -7,34 +7,22 @@ import '../../constant.dart';
 
 class AlbumTab extends StatefulWidget {
   const AlbumTab({
-    Key key,
+    Key key, @required this.albums,
   }) : super(key: key);
+
+  final List albums;
 
   @override
   _AlbumTabState createState() => _AlbumTabState();
 }
 
 class _AlbumTabState extends State<AlbumTab> {
-  List<AlbumInfo> albums = [];
 
-  void initState() {
-    getAlbumList();
-    super.initState();
-  }
-
-  ///This function get the albums on the device
-  getAlbumList() async {
-    var temp = await audioQuery.getAlbums();
-    setState(() {
-      albums = temp;
-    });
-    //print(temp.last);
-  }
 
   ///this function plays the selected song
   playSong(int albumIndex) async {
     int index = 0;
-    var songs = await getSongFromAlbum(albums[albumIndex].id);
+    var songs = await getSongFromAlbum(widget.albums[albumIndex].id);
     var temp = await kSongInfoToMediaItem(songs[index], 0);
     await AudioService.playMediaItem(temp);
     await AudioService.updateMediaItem(temp);
@@ -52,9 +40,9 @@ class _AlbumTabState extends State<AlbumTab> {
 
   @override
   Widget build(BuildContext context) {
-    if (albums.isNotEmpty) {
+    if (widget.albums.isNotEmpty) {
       return GridView.builder(
-          itemCount: albums.length,
+          itemCount: widget.albums.length,
           padding: EdgeInsets.only(left: 30, right: 30, top: 25, bottom: 25),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               childAspectRatio: 0.75,
@@ -64,18 +52,18 @@ class _AlbumTabState extends State<AlbumTab> {
           itemBuilder: (context, index) {
             return GestureDetector(
               onTap: () async {
-                List<SongInfo> songs = await getSongFromAlbum(albums[index].id);
+                List<SongInfo> songs = await getSongFromAlbum(widget.albums[index].id);
 
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (BuildContext context) {
                       return TemplatePage(
-                        albumId: albums[index].id,
+                        albumId: widget.albums[index].id,
                         typeOfTemplate: 'album',
                         songList: songs,
-                        title: albums[index].title,
+                        title: widget.albums[index].title,
                         albumIndex: index,
-                        artWork: albums[index].albumArt,
+                        artWork: widget.albums[index].albumArt,
                       );
                     },
                   ),
@@ -86,19 +74,18 @@ class _AlbumTabState extends State<AlbumTab> {
                   builder: (context, snapshot) {
                     return AlbumItem(
                       playButton: true,
-                      item: albums[index],
-                      
+                      item: widget.albums[index],
                       typeOfAlbumItem: 'album',
                       onPressed: () async {
                         playSong(index);
                       },
                       icon: snapshot.hasData &&
                               snapshot.data.extras['albumId'] ==
-                                  albums[index].id
+                                  widget.albums[index].id
                           ? Icons.pause
                           : Icons.play_arrow,
-                      title: albums[index].title,
-                      albumArtwork: albums[index].albumArt,
+                      title: widget.albums[index].title,
+                      albumArtwork:widget. albums[index].albumArt,
                       borderRadius: BorderRadius.circular(5),
                     );
                   }),

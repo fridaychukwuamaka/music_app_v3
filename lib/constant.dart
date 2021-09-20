@@ -9,7 +9,7 @@ final FlutterAudioQuery audioQuery = FlutterAudioQuery();
 
 var uuid = Uuid();
 
-const String kPlaceHolderImage = 'assets/images/baby.jpg';
+const String kPlaceHolderImage = 'assets/images/mink-mingle-HRyjETL87Gg-unsplash.jpg';
 
 bool kIfSongIsPlaying(MediaItem currentMediaItem, String songPath) {
   if (currentMediaItem?.extras?.containsKey('filePath') == true) {
@@ -39,16 +39,23 @@ Future<MediaItem> kSongInfoToMediaItem(SongInfo song, int index) async {
 
   var img = await audioQuery.getArtwork(type: ResourceType.SONG, id: song.id);
 
-  final tempDir = await getTemporaryDirectory();
-  final file = await new File('${tempDir.path}/${song.id}.jpg').create();
-  file.writeAsBytesSync(img, mode: FileMode.append);
+  Uri artworkUri;
+
+  if (img != null) {
+    final tempDir = await getTemporaryDirectory();
+    final File file = await new File('${tempDir.path}/${song.albumId}.jpg').create();
+    file.writeAsBytesSync(img, mode: FileMode.writeOnlyAppend);
+    artworkUri = file.uri;
+  } else {
+    artworkUri = null;
+  }
 
   MediaItem mediaItem = MediaItem(
     id: id,
     album: song.album,
     title: song.title,
     artist: song.artist,
-    artUri: file.uri,
+    artUri: artworkUri,
     duration: Duration(milliseconds: int.parse(song.duration)),
     extras: {
       'albumId': song.albumId,

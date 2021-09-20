@@ -1,16 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
-import 'package:flutter_audio_query/flutter_audio_query.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio/just_audio.dart';
-
-FlutterAudioQuery _query = FlutterAudioQuery();
+import 'package:path_provider/path_provider.dart';
 
 ///Start background task
 Future onBackground() async {
   await AudioService.start(
     backgroundTaskEntrypoint: myBackgroundTaskEntrypoint,
-    androidStopForegroundOnPause: true,
     androidEnableQueue: true,
     androidNotificationChannelName: 'Audio Service Demo',
     androidNotificationIcon: 'mipmap/ic_launcher',
@@ -27,6 +27,15 @@ class MyBackgroundTask extends BackgroundAudioTask {
   StreamSubscription<PlaybackEvent> _eventSubscription;
 
   AudioServiceRepeatMode loopMode;
+
+  Future<void> initHive() async {
+    final appDocumentDir = await getApplicationDocumentsDirectory();
+    Hive.init(appDocumentDir.path);
+    await Hive.initFlutter();
+    await Hive.openBox('lastSong');
+    await Hive.openBox('lastQueue');
+    await Hive.openBox('lastPosition');
+  }
 
   /// Broadcasts the current state to all clients.
   Future<void> _broadcastState() async {
@@ -73,9 +82,15 @@ class MyBackgroundTask extends BackgroundAudioTask {
   Future<void> onStart(Map<String, dynamic> params) async {
     final session = await AudioSession.instance;
     await session.configure(AudioSessionConfiguration.speech());
+    await initHive();
 
     _eventSubscription = _player.playbackEventStream.listen((event) {
       _broadcastState();
+    });
+
+    _player.positionStream.listen((event) async {
+      await Hive.box('lastPosition')
+          .put('lastPosition', _player.position.inMilliseconds);
     });
 
     _player.processingStateStream.listen((state) async {
@@ -134,6 +149,8 @@ class MyBackgroundTask extends BackgroundAudioTask {
   @override
   Future<void> onUpdateQueue(List<MediaItem> queue) async {
     await AudioServiceBackground.setQueue(queue);
+
+    await Hive.box('lastQueue').put('lastQueue', json.encode(queue));
   }
 
   @override
@@ -168,7 +185,8 @@ class MyBackgroundTask extends BackgroundAudioTask {
     print(mediaItem.id);
     try {
       await _player.setFilePath(mediaItem.extras['filePath']);
-      onPlay();
+      await onPlay();
+      await Hive.box('lastSong').put('lastSong', json.encode(mediaItem));
     } catch (e) {}
     return super.onPlayMediaItem(mediaItem);
   }
@@ -243,13 +261,37 @@ class MyBackgroundTask extends BackgroundAudioTask {
   }
 
   @override
-  Future onCustomAction(String name, arguments) {
+  Future onCustomAction(String name, arguments) async {
     switch (name) {
       case 'UPDATE-INDEX':
         MediaItem mediaItem = AudioServiceBackground.mediaItem.copyWith(
           extras: {},
         );
         AudioServiceBackground.setMediaItem(mediaItem);
+        break;
+      case 'SET-FILE-PATH':
+       await _player.setFilePath(arguments);
+        break;
+      case 'SET-STATE':
+        await AudioServiceBackground.setState(
+          controls: [
+            MediaControl.skipToPrevious,
+            MediaControl.play,
+            MediaControl.stop,
+            MediaControl.skipToNext,
+          ],
+          systemActions: [
+            MediaAction.seekTo,
+            MediaAction.seekForward,
+            MediaAction.seekBackward,
+          ],
+          androidCompactActions: [0, 1, 3],
+          playing: false,
+          processingState: AudioProcessingState.ready,
+          bufferedPosition: Duration(microseconds: arguments),
+          position: Duration(microseconds: arguments),
+        );
+
         break;
 
       default:

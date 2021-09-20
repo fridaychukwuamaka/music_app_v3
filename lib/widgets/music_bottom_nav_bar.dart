@@ -11,6 +11,7 @@ class MusicBottomNavBar extends StatelessWidget {
   final String currentArtist;
   final String currentAlbumArt;
   final Stream streams;
+  final Function() onTap;
   final MediaItem currentMediaItem;
 
   const MusicBottomNavBar({
@@ -19,19 +20,24 @@ class MusicBottomNavBar extends StatelessWidget {
     @required this.currentAlbumArt,
     @required this.currentMediaItem,
     this.streams,
+    this.onTap,
   });
 
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return PlayingPage();
-            },
-          ),
-        );
+        if (onTap != null) {
+          await onTap();
+        } else {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) {
+                return PlayingPage();
+              },
+            ),
+          );
+        }
       },
       child: Container(
         height: 65,
@@ -62,6 +68,7 @@ class MusicBottomNavBar extends StatelessWidget {
                           color: Color(0xFFE6E6E6),
                           borderRadius: BorderRadius.circular(3),
                           image: DecorationImage(
+                            fit: BoxFit.cover,
                             image: MemoryImage(snapshot.data),
                           ),
                         ),

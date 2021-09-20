@@ -9,29 +9,16 @@ import 'package:flutter_audio_query/flutter_audio_query.dart';
 class SongTab extends StatefulWidget {
   const SongTab({
     Key key,
+    @required this.songs,
   }) : super(key: key);
+
+  final List songs;
 
   @override
   _SongTabState createState() => _SongTabState();
 }
 
 class _SongTabState extends State<SongTab> {
-  List<SongInfo> songs = [];
-  @override
-  void initState() {
-    getSongList();
-    super.initState();
-  }
-
-  ///This function get the songs on the device
-  getSongList() async {
-    var temp =
-        await audioQuery.getSongs(sortType: SongSortType.CURRENT_IDs_ORDER);
-    setState(() {
-      songs = temp;
-    });
-  }
-
   ///this function plays the selected song
   Future<void> playSong(List<SongInfo> song, int index) async {
     MediaItem temp = await kSongInfoToMediaItem(song[index], index);
@@ -45,10 +32,10 @@ class _SongTabState extends State<SongTab> {
 
   @override
   Widget build(BuildContext context) {
-    if (songs.isNotEmpty) {
+    if (widget.songs.isNotEmpty) {
       return ListView.builder(
-        itemCount: songs.length,
-        padding: EdgeInsets.only(left: 30, right: 15, top: 25, bottom: 10),
+        itemCount: widget.songs.length,
+        padding: EdgeInsets.only(left: 30, right: 15, top: 10, bottom: 10),
         itemBuilder: (BuildContext context, int index) {
           return StreamBuilder<MediaItem>(
               stream: AudioService.currentMediaItemStream,
@@ -59,16 +46,16 @@ class _SongTabState extends State<SongTab> {
                   textAreaLength: MediaQuery.of(context).size.width - 229,
                   color: Color(0xFFE6E6E6),
                   iconColor: Color(0xFF5C5C5C),
-                  thePlaying:
-                      kIfSongIsPlaying(currentMediaItem, songs[index].filePath),
-                  title: songs[index].title,
-                  albumArt: songs[index].albumArtwork,
-                  artist: songs[index].artist,
-                  song: songs[index],
+                  thePlaying: kIfSongIsPlaying(
+                      currentMediaItem, widget.songs[index].filePath),
+                  title: widget.songs[index].title,
+                  albumArt: widget.songs[index].albumArtwork,
+                  artist: widget.songs[index].artist,
+                  song: widget.songs[index],
                   songIndex: index,
-                  songList: songs,
+                  songList: widget.songs,
                   onClick: () async {
-                    await playSong(songs, index);
+                    await playSong(widget.songs, index);
                   },
                   subtitleTextColor: Colors.black,
                   titleTextColor: Colors.black,

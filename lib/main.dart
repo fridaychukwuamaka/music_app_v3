@@ -10,26 +10,30 @@ import './services/music_service.dart';
 Future<void> initHive() async {
   final appDocumentDir = await getApplicationDocumentsDirectory();
   Hive.init(appDocumentDir.path);
-  Hive.initFlutter();
+  await Hive.initFlutter();
   await Hive.openBox('playingAlbum');
   await Hive.openBox('shuffle');
   await Hive.openBox('initialSongs');
   await Hive.openBox('loop');
   await Hive.openBox('playlist');
+  await Hive.openBox('lastSong');
+  await Hive.openBox('lastQueue');
+  await Hive.openBox('lastPosition');
   // await Hive.openBox('currentIndex');
 }
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   try {
-    WidgetsFlutterBinding.ensureInitialized();
     await initHive();
+    WidgetsFlutterBinding.ensureInitialized();
     runApp(
       MultiProvider(
         providers: [
           ChangeNotifierProvider(
             create: (context) => MusicService(),
           ),
-        
         ],
         child: MyApp(),
       ),
@@ -44,22 +48,28 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      
+      title: 'Music App',
+      themeMode: ThemeMode.system,
       theme: ThemeData(
         accentColor: Colors.orange,
         buttonTheme: ButtonThemeData(
           buttonColor: Colors.orange,
         ),
+        iconTheme: IconThemeData(color: Colors.white),
+       
         popupMenuTheme: PopupMenuThemeData(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(7),
           ),
           textStyle: TextStyle(
-              color: Colors.black,
-              fontFamily: 'Montserrat',
-              fontWeight: FontWeight.w600,
-              fontSize: 14.5),
+            color: Colors.black,
+            fontFamily: 'Montserrat',
+            fontWeight: FontWeight.w600,
+            fontSize: 14.5,
+          ),
         ),
         tabBarTheme: TabBarTheme(
           labelColor: Colors.orange,

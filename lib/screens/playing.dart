@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -67,35 +68,28 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                   stream: AudioService.currentMediaItemStream,
                   initialData: AudioService.currentMediaItem,
                   builder: (context, snapshot) {
-                    return FutureBuilder<Uint8List>(
-                        future: FlutterAudioQuery().getArtwork(
-                          type: ResourceType.SONG,
-                          id: snapshot.data.extras['songId'],
-                        ),
-                        builder: (context, snapshot) {
-                          return Positioned(
-                            top: 0,
-                            child: snapshot.hasData && snapshot.data.isNotEmpty
-                                ? Image.memory(
-                                    snapshot.data,
-                                    height: MediaQuery.of(context).size.height,
-                                    width: MediaQuery.of(context).size.width,
-                                    fit: BoxFit.cover,
-                                    filterQuality: FilterQuality.medium,
-                                    gaplessPlayback: true,
-                                  )
-                                : Container(
-                                    color: Colors.black,
-                                    height: MediaQuery.of(context).size.height,
-                                    width: MediaQuery.of(context).size.width,
-                                    child: Center(
-                                      child: Icon(
-                                        FeatherIcons.music,
-                                        color: Colors.white,
-                                      ),
-                                    )),
-                          );
-                        });
+                    return Positioned(
+                      top: 0,
+                      child: snapshot.hasData && snapshot?.data?.artUri != null
+                          ? Image.file(
+                              File.fromUri(snapshot?.data?.artUri),
+                              height: MediaQuery.of(context).size.height,
+                              width: MediaQuery.of(context).size.width,
+                              fit: BoxFit.cover,
+                              filterQuality: FilterQuality.high,
+                              gaplessPlayback: true,
+                            )
+                          : Container(
+                              color: Colors.black,
+                              height: MediaQuery.of(context).size.height,
+                              width: MediaQuery.of(context).size.width,
+                              child: Center(
+                                child: Icon(
+                                  FeatherIcons.music,
+                                  color: Colors.white,
+                                ),
+                              )),
+                    );
                   }),
               Container(
                 decoration: BoxDecoration(color: Color.fromRGBO(0, 0, 0, 0.61)),

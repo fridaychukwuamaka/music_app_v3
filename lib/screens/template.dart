@@ -174,7 +174,9 @@ class _TemplatePageState extends State<TemplatePage>
                                   image: snapshot.hasData &&
                                           snapshot.data.isNotEmpty
                                       ? MemoryImage(snapshot?.data)
-                                      : AssetImage(kPlaceHolderImage),
+                                      : AssetImage(typeOfTemplate == 'album'
+                                          ? 'assets/images/adrian-korte-5gn2soeAc40-unsplash.jpg'
+                                          : 'assets/images/jefferson-santos-fCEJGBzAkrU-unsplash.jpg'),
                                   fit: BoxFit.cover,
                                 ),
                                 /* gradient: LinearGradient(
@@ -193,7 +195,7 @@ class _TemplatePageState extends State<TemplatePage>
                           title: '',
                           iconSize: 16,
                           leadingIcon: FeatherIcons.arrowLeft,
-                          trailingIcon: FeatherIcons.sliders,
+                          trailingIcon: FeatherIcons.shuffle,
                           padding: true,
                           onleadingIconPressed: () {
                             Navigator.of(context).pop();

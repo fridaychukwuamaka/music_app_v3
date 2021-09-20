@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:music_app_v3/constant.dart';
+import 'package:music_app_v3/screens/template.dart';
 import 'package:music_app_v3/widgets/music_playlist_modal.dart';
 
 enum MusicItemMenu { playnext, addtoque, showalbum, delete }
@@ -193,6 +194,12 @@ class MusicListItem extends StatelessWidget {
                         case 1:
                           addToQueue();
                           break;
+                        case 3:
+                          AudioService.removeQueueItem(song);
+                          break;
+                        case 2:
+                          showAlbum(context);
+                          break;
                         case 5:
                           showModalBottomSheet(
                             context: context,
@@ -296,6 +303,24 @@ class MusicListItem extends StatelessWidget {
             )
           ],
         ),
+      ),
+    );
+  }
+
+  void showAlbum(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (BuildContext context) {
+          return TemplatePage(
+            albumId:
+                page == 'now_playing' ? song.extra['albumId'] : song.albumId,
+            typeOfTemplate: 'album',
+            songList: songList,
+            title: song.title,
+            albumIndex: 0,
+            artWork: '',
+          );
+        },
       ),
     );
   }

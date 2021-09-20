@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter/material.dart';
@@ -108,40 +107,88 @@ class _AlbumItemState extends State<AlbumItem> {
     AudioService.addQueueItems(mediaItemSongs);
   }
 
+  IconData setIcon(MediaItem mediaItem) {
+    String albumId = '';
+
+    if (widget.typeOfAlbumItem == 'album') {
+      albumId = mediaItem.extras['albumId'];
+      if (albumId != widget.item.id) {
+        return Icons.play_arrow;
+      } else {
+        return Icons.pause;
+      }
+    } else if (widget.typeOfAlbumItem == 'artist') {
+      albumId = mediaItem.extras['artistId'];
+      print(albumId);
+      if (albumId != widget.item.id) {
+        return Icons.play_arrow;
+      } else {
+        return Icons.pause;
+      }
+    } else {
+      return Icons.play_arrow;
+    }
+  }
+
   String hasImage;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: widget.borderRadius,
-        color: Color(0xFFE6E6E6),
-        boxShadow: widget.albumArtwork != null
-            ? [
-                BoxShadow(
-                  offset: Offset(0, 3),
-                  blurRadius: 6,
-                  color: Color.fromRGBO(0, 0, 0, 0.16),
-                )
-              ]
-            : null,
-      ),
-      child: Stack(
-        children: <Widget>[
-          FutureBuilder<Uint8List>(
-              future: FlutterAudioQuery().getArtwork(
-                type: widget.typeOfAlbumItem == 'album'
-                    ? ResourceType.ALBUM
-                    : ResourceType.ARTIST,
-                id: widget.item.id,
-              ),
-              builder: (context, snapshot) {
-                if (snapshot.hasData && snapshot.data.isNotEmpty) {
-                  hasImage = '';
-                } else {
-                  hasImage = null;
-                }
-                return ClipRRect(
+    return FutureBuilder(
+        future: FlutterAudioQuery().getArtwork(
+          type: widget.typeOfAlbumItem == 'album'
+              ? ResourceType.ALBUM
+              : ResourceType.ARTIST,
+          id: widget.item.id,
+        ),
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data.isNotEmpty) {
+            hasImage = '';
+          } else {
+            hasImage = null;
+          }
+          return Container(
+            decoration: BoxDecoration(
+              borderRadius: widget.borderRadius,
+              color: Color(0xFFE6E6E6),
+              boxShadow: hasImage != null
+                  ? [
+                      BoxShadow(
+                        offset: Offset(0, 3),
+                        blurRadius: 6,
+                        color: Color.fromRGBO(0, 0, 0, 0.16),
+                      )
+                    ]
+                  : null,
+            ),
+            child: Stack(
+              children: <Widget>[
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  left: 0,
+                  bottom: 0,
+                  child: Container(
+                    height: double.infinity,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: hasImage != null
+                          ? LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: <Color>[
+                                Color.fromRGBO(0, 0, 0, 0.2),
+                                Color.fromRGBO(0, 0, 0, 0),
+                                Color.fromRGBO(0, 0, 0, 0),
+                                Color.fromRGBO(0, 0, 0, 0.4),
+                              ],
+                            )
+                          : null,
+                      borderRadius: widget.borderRadius,
+                    ),
+                  ),
+                ),
+                  ClipRRect(
                   borderRadius: widget.borderRadius,
                   child: snapshot.hasData && snapshot.data.isNotEmpty
                       ? SizedBox.expand(
@@ -163,8 +210,8 @@ class _AlbumItemState extends State<AlbumItem> {
                                 ),
                               ),
                             ),
-                            fit: BoxFit.fitHeight,
-                            filterQuality: FilterQuality.none,
+                            fit: BoxFit.cover,
+                            filterQuality: FilterQuality.high,
                             cacheHeight: 200,
                             cacheWidth: 200,
                             gaplessPlayback: true,
@@ -185,160 +232,155 @@ class _AlbumItemState extends State<AlbumItem> {
                             ),
                           ),
                         ),
-                );
-              }),
-          Container(
-            decoration: BoxDecoration(
-              gradient: widget.albumArtwork != null
-                  ? LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: <Color>[
-                        Color.fromRGBO(0, 0, 0, 0.2),
-                        Color.fromRGBO(0, 0, 0, 0.52),
-                      ],
-                    )
-                  : null,
-              borderRadius: widget.borderRadius,
-            ),
-          ),
-          Positioned(
-            right: 10,
-            bottom: 45,
-            child: widget.playButton
-                ? InkWell(
-                    onTap: widget.onPressed,
-                    child: Container(
-                      padding: EdgeInsets.all(3.5),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.orange,
-                      ),
-                      child: Icon(
-                        widget.icon,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  )
-                : SizedBox.shrink(),
-          ),
-          Positioned(
-            left: -10,
-            child: PopupMenuButton(
-              icon: Icon(
-                Icons.more_vert,
-                size: 20,
-                color: hasImage != null ? Colors.white : Colors.black,
-              ),
-              onSelected: (value) async {
-                switch (value) {
-                  case 0:
-                    shuffleAndPlaySong();
-                    break;
-                  case 1:
-                    playNext();
-                    break;
-                  case 2:
-                    addToQueue();
-                    break;
-                  case 3:
-                    var songs = await getSongFromItem() as List<SongInfo>;
-                    showModalBottomSheet(
-                      context: context,
-                      backgroundColor: Colors.transparent,
-                      builder: (BuildContext context) => MusicPlaylistModal(
-                        songIds: songs.map((e) => e.id).toList(),
-                      ),
-                    );
-                    break;
-                  default:
-                }
-              },
-              offset: Offset(50, 150),
-              itemBuilder: (BuildContext context) {
-                return <PopupMenuEntry>[
-                  PopupMenuItem(
-                    child: Text(
-                      'Shuffle',
-                      textScaleFactor: 0.9,
-                    ),
-                    value: 0,
-                  ),
-                  PopupMenuDivider(),
-                  PopupMenuItem(
-                    child: Text(
-                      'Play next',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    value: 1,
-                  ),
-                  PopupMenuDivider(),
-                  PopupMenuItem(
-                    child: Text(
-                      'Add to queue',
-                      textScaleFactor: 0.9,
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    value: 2,
-                  ),
-                  PopupMenuDivider(),
-                  PopupMenuItem(
-                    child: Text(
-                      'Add to playlist',
-                      textScaleFactor: 0.9,
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    value: 3,
-                  ),
+                ),
 
-                  widget.typeOfAlbumItem == 'playlist' &&
-                          widget.title != 'Liked'
-                      ? PopupMenuDivider()
-                      : PopupMenuItem(
-                          height: 0,
-                          child: SizedBox.shrink(),
-                        ),
-                  widget.typeOfAlbumItem == 'playlist' &&
-                          widget.title != 'Liked'
-                      ? PopupMenuItem(
+                StreamBuilder<MediaItem>(
+                    initialData: AudioService.currentMediaItem,
+                    stream: AudioService.currentMediaItemStream,
+                    builder: (context, snapshot) {
+                      final MediaItem mediaItem = snapshot?.data;
+                      return Positioned(
+                        right: 10,
+                        bottom: 45,
+                        child: widget.playButton
+                            ? InkWell(
+                                onTap: widget.onPressed,
+                                child: Container(
+                                  padding: EdgeInsets.all(3.5),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.orange,
+                                  ),
+                                  child: Icon(
+                                    setIcon(mediaItem),
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                              )
+                            : SizedBox.shrink(),
+                      );
+                    }),
+                Positioned(
+                  left: -10,
+                  child: PopupMenuButton(
+                    icon: Icon(
+                      Icons.more_vert,
+                      size: 20,
+                      color: hasImage != null ? Colors.white : Colors.black,
+                    ),
+                    onSelected: (value) async {
+                      switch (value) {
+                        case 0:
+                          shuffleAndPlaySong();
+                          break;
+                        case 1:
+                          playNext();
+                          break;
+                        case 2:
+                          addToQueue();
+                          break;
+                        case 3:
+                          var songs = await getSongFromItem() as List<SongInfo>;
+                          showModalBottomSheet(
+                            context: context,
+                            backgroundColor: Colors.transparent,
+                            builder: (BuildContext context) =>
+                                MusicPlaylistModal(
+                              songIds: songs.map((e) => e.id).toList(),
+                            ),
+                          );
+                          break;
+                        default:
+                      }
+                    },
+                    offset: Offset(50, 150),
+                    itemBuilder: (BuildContext context) {
+                      return <PopupMenuEntry>[
+                        PopupMenuItem(
                           child: Text(
-                            'Delete',
+                            'Shuffle',
+                            textScaleFactor: 0.9,
+                          ),
+                          value: 0,
+                        ),
+                        PopupMenuDivider(),
+                        PopupMenuItem(
+                          child: Text(
+                            'Play next',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          value: 1,
+                        ),
+                        PopupMenuDivider(),
+                        PopupMenuItem(
+                          child: Text(
+                            'Add to queue',
                             textScaleFactor: 0.9,
                             style: TextStyle(fontSize: 14),
                           ),
-                          value: 4,
-                        )
-                      : PopupMenuItem(
-                          height: 0,
-                          child: SizedBox.shrink(),
+                          value: 2,
                         ),
-                  //PopupMenuDivider(),
-                ];
-              },
-            ),
-          ),
-          Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Padding(
-                padding: const EdgeInsets.only(
-                    bottom: 15, left: 10, right: 10, top: 5),
-                child: Text(
-                  widget.title,
-                  textScaleFactor: 0.9,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyText1.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                        color: hasImage != null ? Colors.white : Colors.black,
-                      ),
+                        PopupMenuDivider(),
+                        PopupMenuItem(
+                          child: Text(
+                            'Add to playlist',
+                            textScaleFactor: 0.9,
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          value: 3,
+                        ),
+
+                        widget.typeOfAlbumItem == 'playlist' &&
+                                widget.title != 'Liked'
+                            ? PopupMenuDivider()
+                            : PopupMenuItem(
+                                height: 0,
+                                child: SizedBox.shrink(),
+                              ),
+                        widget.typeOfAlbumItem == 'playlist' &&
+                                widget.title != 'Liked'
+                            ? PopupMenuItem(
+                                child: Text(
+                                  'Delete',
+                                  textScaleFactor: 0.9,
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                                value: 4,
+                              )
+                            : PopupMenuItem(
+                                height: 0,
+                                child: SizedBox.shrink(),
+                              ),
+                        //PopupMenuDivider(),
+                      ];
+                    },
+                  ),
                 ),
-              ))
-        ],
-      ),
-    );
+                Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          bottom: 15, left: 10, right: 10, top: 5),
+                      child: Text(
+                        widget.title,
+                        textScaleFactor: 0.9,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyText1.copyWith(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                              color: hasImage != null
+                                  ? Colors.white
+                                  : Colors.black,
+                            ),
+                      ),
+                    ))
+              ],
+            ),
+          );
+        });
   }
 }
