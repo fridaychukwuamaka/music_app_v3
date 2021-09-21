@@ -23,7 +23,7 @@ import 'package:music_app_v3/widgets/music_bottom_nav_bar.dart';
 
 import '../constant.dart';
 
-//TODO: 1. ALBUM ITEM FOR LIGHT IMAGES
+
 //TODO: 2. FIX WHEN QUEUE STOP
 //TODO: 3. HEADSET BUTTON WHEN APP IS ON
 //TODO: 4. LOCKSCREEN ISSUE
@@ -77,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage>
           var img =
               await audioQuery.getArtwork(type: ResourceType.SONG, id: e.id);
 
-          if (img != null) {
+          if (img != null ) {
             final File albumArtFile =
                 await new File('${tempDir.path}/album-${e.albumId}.png')
                     .create();
@@ -89,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage>
           //CREATE ARTIST ART WORK
           var artistImg = await audioQuery.getArtwork(
               type: ResourceType.ARTIST, id: e.artistId);
-          if (artistImg != null) {
+          if (artistImg != null  ) {
             final File artistArtFile =
                 await new File('${tempDir.path}/artist-${e.artistId}.png')
                     .create();
@@ -113,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage>
     //await onBackground();
 
     var currentMediaItem;
-    if (AudioService.currentMediaItem == null) {
+    if (Hive.box('lastSong').isNotEmpty) {
       var val = json.decode(Hive.box('lastSong').get('lastSong'));
       if (val != null) {
         currentMediaItem = MediaItem.fromJson(val);
@@ -138,9 +138,9 @@ class _MyHomePageState extends State<MyHomePage>
 
       await AudioService.seekTo(Duration(milliseconds: position));
 
-      var lastqueue = await Hive.box('lastQueue').get('lastQueue');
 
-      if (lastqueue != null) {
+      if (Hive.box('lastQueue').isNotEmpty) {
+      var lastqueue = await Hive.box('lastQueue').get('lastQueue');
         dynamic originalSong = json.decode(lastqueue);
 
         originalSong = List<MediaItem>.from(
@@ -421,7 +421,7 @@ class _MyHomePageState extends State<MyHomePage>
 
             if (currentMediaItem != null) {
               return MusicBottomNavBar(
-                currentAlbumArt: currentMediaItem?.artUri?.path ?? '',
+                currentAlbumArt: currentMediaItem?.artUri?.toFilePath() ?? '',
                 currentArtist: currentMediaItem?.artist ?? '',
                 currentSong: currentMediaItem?.title ?? '',
                 currentMediaItem: currentMediaItem,

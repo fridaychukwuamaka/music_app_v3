@@ -112,14 +112,14 @@ class _AlbumItemState extends State<AlbumItem> {
   IconData setIcon(MediaItem mediaItem) {
     String albumId = '';
 
-    if (widget.typeOfAlbumItem == 'album') {
+    if (widget.typeOfAlbumItem == 'album' && mediaItem != null) {
       albumId = mediaItem.extras['albumId'];
       if (albumId != widget.item.id) {
         return Icons.play_arrow;
       } else {
         return Icons.pause;
       }
-    } else if (widget.typeOfAlbumItem == 'artist') {
+    } else if (widget.typeOfAlbumItem == 'artist' && mediaItem != null) {
       albumId = mediaItem.extras['artistId'];
       print(albumId);
       if (albumId != widget.item.id) {
@@ -132,11 +132,21 @@ class _AlbumItemState extends State<AlbumItem> {
     }
   }
 
-
+  bool hasImage() {
+    if (File(widget.albumArtwork).existsSync()) {
+      if (File(widget.albumArtwork).readAsBytesSync().isNotEmpty) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-return Container(
+    return Container(
       decoration: BoxDecoration(
         borderRadius: widget.borderRadius,
         color: Color(0xFFE6E6E6),
@@ -152,28 +162,29 @@ return Container(
       ),
       child: Stack(
         children: <Widget>[
-          
           ClipRRect(
             borderRadius: widget.borderRadius,
-            child:widget. albumArtwork != null
+            child: widget.albumArtwork != null
                 ? SizedBox.expand(
                     child: Image.file(
-                     File(widget.albumArtwork),
-                      errorBuilder: (context, error, stackTrace) => Center(
-                        child: SizedBox(
-                          height: 45,
-                          width: 45,
-                          child: Icon(
-                            widget.typeOfAlbumItem == 'album'
-                                ? FeatherIcons.disc
-                                : widget.typeOfAlbumItem == 'artist'
-                                    ? FeatherIcons.user
-                                    : Icons.playlist_play,
-                            color: Color(0xFF5C5C5C),
-                            size: 33,
+                      File(widget.albumArtwork),
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: SizedBox(
+                            height: 45,
+                            width: 45,
+                            child: Icon(
+                              widget.typeOfAlbumItem == 'album'
+                                  ? FeatherIcons.disc
+                                  : widget.typeOfAlbumItem == 'artist'
+                                      ? FeatherIcons.user
+                                      : Icons.playlist_play,
+                              color: Color(0xFF5C5C5C),
+                              size: 33,
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                       fit: BoxFit.cover,
                       filterQuality: FilterQuality.high,
                       cacheHeight: 200,
@@ -206,7 +217,7 @@ return Container(
               height: double.infinity,
               width: double.infinity,
               decoration: BoxDecoration(
-                gradient: widget.albumArtwork != null
+                gradient: hasImage()
                     ? LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -255,7 +266,7 @@ return Container(
               icon: Icon(
                 Icons.more_vert,
                 size: 20,
-                color: widget.albumArtwork != null ? Colors.white : Colors.black,
+                color: hasImage() ? Colors.white : Colors.black,
               ),
               onSelected: (value) async {
                 switch (value) {
@@ -359,11 +370,12 @@ return Container(
                   style: Theme.of(context).textTheme.bodyText1.copyWith(
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
-                        color: widget.albumArtwork != null ? Colors.white : Colors.black,
+                        color: hasImage() ? Colors.white : Colors.black,
                       ),
                 ),
               ))
         ],
       ),
-    ); }
+    );
+  }
 }

@@ -98,7 +98,7 @@ class _TemplatePageState extends State<TemplatePage>
 
   IconData setIcon(MediaItem mediaItem) {
     String albumId = '';
-    if (widget.typeOfTemplate == 'album') {
+    if (widget.typeOfTemplate == 'album' && mediaItem != null) {
       print(widget.albumId);
       print('fgfgkkdfkm');
       albumId = mediaItem.extras['albumId'];
@@ -108,7 +108,7 @@ class _TemplatePageState extends State<TemplatePage>
       } else {
         return Icons.pause;
       }
-    } else if (widget.typeOfTemplate == 'artist') {
+    } else if (widget.typeOfTemplate == 'artist' && mediaItem != null) {
       print(widget.albumId);
       print('fgfgkkdfkm');
       albumId = mediaItem.extras['artistId'];
@@ -160,19 +160,19 @@ class _TemplatePageState extends State<TemplatePage>
                   width: MediaQuery.of(context).size.width,
                   child: Stack(
                     children: <Widget>[
-                   Positioned(
-                                child: Container(
-                              height: 280,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image: artWork != null
-                                      ? FileImage(File(artWork))
-                                      : AssetImage(typeOfTemplate == 'album'
-                                          ? 'assets/images/adrian-korte-5gn2soeAc40-unsplash.jpg'
-                                          : 'assets/images/jefferson-santos-fCEJGBzAkrU-unsplash.jpg'),
-                                  fit: BoxFit.cover,
-                                ),
-                                /* gradient: LinearGradient(
+                      Positioned(
+                          child: Container(
+                        height: 280,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: artWork != null
+                                ? FileImage(File(artWork))
+                                : AssetImage(typeOfTemplate == 'album'
+                                    ? 'assets/images/adrian-korte-5gn2soeAc40-unsplash.jpg'
+                                    : 'assets/images/jefferson-santos-fCEJGBzAkrU-unsplash.jpg'),
+                            fit: BoxFit.cover,
+                          ),
+                          /* gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: <Color>[
@@ -180,8 +180,8 @@ class _TemplatePageState extends State<TemplatePage>
                                   Color.fromRGBO(0, 0, 0, 0.62),
                                 ],
                               ), */
-                              ),
-                            )),
+                        ),
+                      )),
                       Positioned(
                         child: MusicAppBar(
                           title: '',

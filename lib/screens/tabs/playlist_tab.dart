@@ -91,7 +91,7 @@ class _PlaylistTabState extends State<PlaylistTab> {
                 },
                 icon: Icons.play_arrow,
                 title: widget.playlist[index].name,
-                albumArtwork: null,
+                albumArtwork: '',
                 borderRadius: BorderRadius.circular(5),
               ),
             );

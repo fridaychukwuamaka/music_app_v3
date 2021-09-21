@@ -67,7 +67,7 @@ class _NowplayingMiniState extends State<NowplayingMini> {
                   top: 0,
                   child: snapshot.hasData && snapshot?.data?.artUri != null
                       ? Image.file(
-                          File.fromUri(snapshot?.data?.artUri),
+                          File(snapshot?.data?.artUri?.toFilePath()),
                           height: MediaQuery.of(context).size.height,
                           width: MediaQuery.of(context).size.width,
                           fit: BoxFit.cover,

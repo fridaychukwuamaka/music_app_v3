@@ -12,6 +12,8 @@ import 'package:music_app_v3/widgets/music_list_item.dart';
 import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 
+import '../constant.dart';
+
 final FlutterAudioQuery audioQuery = FlutterAudioQuery();
 
 class DetailedSearchResult extends StatefulWidget {
@@ -132,181 +134,147 @@ class _DetailedSearchResultState extends State<DetailedSearchResult>
     return Scaffold(
       // backgroundColor: kBackgroundColor,
       body: SafeArea(
-        child: ValueListenableBuilder(
-            valueListenable: Hive.box('playingAlbum').listenable(),
-            builder: (BuildContext context, value, Widget child) {
-              var temp = value.get('playingAlbum');
-              print(temp);
-              dynamic playingAlbum = {'id': '', 'type': ''};
-              if (temp != null) {
-                playingAlbum = json.decode(temp);
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  MusicAppBar(
-                    title: '',
-                    iconSize: 16,
-                    leadingIcon: FeatherIcons.arrowLeft,
-                    trailingIcon: FeatherIcons.moreVertical,
-                    padding: true,
-                    onleadingIconPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 20.0, horizontal: 35),
-                    child: Text(
-                      widget.title,
-                      style:
-                          TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Container(
-                    height: 0.5,
-                    color:
-                        /*Provider.of<MusicService>(context).kKolor(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            MusicAppBar(
+              title: '',
+              iconSize: 16,
+              leadingIcon: FeatherIcons.arrowLeft,
+              trailingIcon: FeatherIcons.moreVertical,
+              padding: true,
+              onleadingIconPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 20.0, horizontal: 35),
+              child: Text(
+                widget.title,
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              ),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Container(
+              height: 0.5,
+              color:
+                  /*Provider.of<MusicService>(context).kKolor(
                       context: context,
                       darkTheme: Colors.white24,
                       lightTheme: Colors.black26),
                 */
-                        Colors.black26,
-                  ),
-                  widget.type == 'songs'
-                      ? Expanded(
-                          child: ListView.builder(
-                            padding:
-                                EdgeInsets.only(top: 20, left: 25, right: 25),
-                            itemCount: widget.list.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return MusicListItem(
-                                title: widget.list[index].title,
-                                albumArt: widget.list[index].albumArtwork,
-                                artist: widget.list[index].artist,
-                                song: widget.list[index],
-                                songIndex: index,
-                                textAreaLength:
-                                    MediaQuery.of(context).size.width - 175,
-                                thePlaying: currentMediaItem?.id ==
-                                    widget.list[index].filePath,
-                                onClick: () async {
-                                  /*  await Provider.of<MusicService>(context,
+                  Colors.black26,
+            ),
+            widget.type == 'songs'
+                ? Expanded(
+                    child: ListView.builder(
+                      padding: EdgeInsets.only(top: 20, left: 25, right: 25),
+                      itemCount: widget.list.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return MusicListItem(
+                          title: widget.list[index].title,
+                          albumArt: widget.list[index].albumArtwork == null
+                              ? getAlbumArtPath(widget.list[index].albumId)
+                              : widget.list[index].albumArtwork,
+                          artist: widget.list[index].artist,
+                          song: widget.list[index],
+                          songIndex: index,
+                          textAreaLength:
+                              MediaQuery.of(context).size.width - 175,
+                          thePlaying: currentMediaItem?.id ==
+                              widget.list[index].filePath,
+                          onClick: () async {
+                            /*  await Provider.of<MusicService>(context,
                                           listen: false)
                                       .updateBackgroundQueue(widget.list);
 
                                   AudioService.skipToQueueItem(
                                       widget.list[index].filePath); */
-                                },
-                                subtitleTextColor: Colors.black,
-                                titleTextColor: Colors.black,
-                              );
-                            },
-                          ),
-                        )
-                      : Expanded(
-                          child: GridView.builder(
-                          padding: EdgeInsets.all(30),
-                          itemCount: widget.list.length,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                  childAspectRatio: 0.75,
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 25,
-                                  mainAxisSpacing: 25),
-                          itemBuilder: (BuildContext context, int index) {
-                            return GestureDetector(
-                              onTap: () async {
-                                var result;
-
-                                if (widget.type == 'album') {
-                                  result = await getSongFromAlbum(
-                                      widget.list[index].id);
-                                } else if (widget.type == 'artist') {
-                                  result = await getSongFromArtist(
-                                      widget.list[index].id);
-                                } else if (widget.type == 'playlist') {
-                                  result = await getSongFromPlaylist(
-                                      widget.list[index]);
-                                }
-                                // var result =
-                                //     await getSongFromAlbum(widget.list[index].id);
-
-                                // Provider.of<MusicService>(context)
-                                //     .setCurrentSongList(result);
-                                print(index);
-                                Navigator.push(context,
-                                    MaterialPageRoute(builder: (context) {
-                                  return TemplatePage(
-                                    songList: result,
-                                    title: widget.type == 'artist'
-                                        ? widget.list[index].name
-                                        : widget.type == 'album'
-                                            ? widget.list[index].title
-                                            : widget.list[index].name,
-                                    artWork: widget.type == 'artist'
-                                        ? widget.list[index].artistArtPath
-                                        : widget.type == 'album',
-                                    albumIndex: index,
-                                    typeOfTemplate: widget.type,
-                                    toTemplateList: widget.list,
-                                  );
-                                }));
-                              },
-                              child: AlbumItem(
-                                title: widget.type == 'artist'
-                                    ? widget.list[index].name
-                                    : widget.type == 'playlist'
-                                        ? widget.list[index].name
-                                        : widget.list[index].title,
-                                toAlbumItemList: widget.list,
-                                typeOfAlbumItem: widget.type,
-                                item: widget.list[index],
-                                index: index,
-                                playButton: true,
-                                icon: _albumIcon(playingAlbum,
-                                    widget.list[index], widget.type),
-                                onPressed: () async {
-                                  /*  dynamic songList;
-                                  switch (widget.type) {
-                                    case 'artist':
-                                      songList =
-                                          await Provider.of<MusicService>(
-                                                  context,
-                                                  listen: false)
-                                              .getSongFromArtist(
-                                                  widget.list[index].id);
-
-                                      break;
-                                    case 'album':
-                                      songList =
-                                          await Provider.of<MusicService>(
-                                                  context,
-                                                  listen: false)
-                                              .getSongFromAlbum(
-                                                  widget.list[index].id);
-
-                                      break;
-                                    default:
-                                  }
-                                  playAlbum(songList, context,
-                                      album: widget.list[index],
-                                      type: widget.type); */
-                                },
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                            );
                           },
-                        ))
-                ],
-              );
-            }),
+                          subtitleTextColor: Colors.black,
+                          titleTextColor: Colors.black,
+                        );
+                      },
+                    ),
+                  )
+                : Expanded(
+                    child: GridView.builder(
+                    padding: EdgeInsets.all(30),
+                    itemCount: widget.list.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        childAspectRatio: 0.75,
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 25,
+                        mainAxisSpacing: 25),
+                    itemBuilder: (BuildContext context, int index) {
+                      return GestureDetector(
+                        onTap: () async {
+                          var result;
+
+                          if (widget.type == 'album') {
+                            result =
+                                await getSongFromAlbum(widget.list[index].id);
+                          } else if (widget.type == 'artist') {
+                            result =
+                                await getSongFromArtist(widget.list[index].id);
+                          } else if (widget.type == 'playlist') {
+                            result =
+                                await getSongFromPlaylist(widget.list[index]);
+                          }
+                          // var result =
+                          //     await getSongFromAlbum(widget.list[index].id);
+
+                          // Provider.of<MusicService>(context)
+                          //     .setCurrentSongList(result);
+                          print(index);
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return TemplatePage(
+                              songList: result,
+                              title: widget.type == 'artist'
+                                  ? widget.list[index].name
+                                  : widget.type == 'album'
+                                      ? widget.list[index].title
+                                      : widget.list[index].name,
+                              artWork: widget.list[index].albumArt == null
+                                  ? getAlbumArtPath(widget.list[index].id)
+                                  : widget.list[index].albumArt,
+                              albumIndex: index,
+                              typeOfTemplate: widget.type,
+                              toTemplateList: widget.list,
+                              albumId: widget.list[index].id,
+                            );
+                          }));
+                        },
+                        child: AlbumItem(
+                          title: widget.type == 'artist'
+                              ? widget.list[index].name
+                              : widget.type == 'playlist'
+                                  ? widget.list[index].name
+                                  : widget.list[index].title,
+                          toAlbumItemList: widget.list,
+                          albumArtwork: widget.list[index].albumArt == null
+                              ? getAlbumArtPath(widget.list[index].id)
+                              : widget.list[index].albumArt,
+                          typeOfAlbumItem: widget.type,
+                          item: widget.list[index],
+                          index: index,
+                          playButton: true,
+                          icon: Icons.ac_unit,
+                          onPressed: () async {},
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      );
+                    },
+                  ))
+          ],
+        ),
       ),
     );
   }

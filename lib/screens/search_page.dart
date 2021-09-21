@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
@@ -11,6 +12,7 @@ import 'package:music_app_v3/widgets/music_list_item.dart';
 // final HiveDb hiveDb = HiveDb();
 
 class SearchPage extends SearchDelegate {
+   Future searchFuture;
   @override
   List<Widget> buildActions(BuildContext context) {
     return [
@@ -23,6 +25,24 @@ class SearchPage extends SearchDelegate {
     ];
   }
 
+  playSong(String albumId) async {
+    int index = 0;
+    var songs = await getSongFromAlbum(albumId);
+    var temp = await kSongInfoToMediaItem(songs[index], 0);
+    await AudioService.playMediaItem(temp);
+    await AudioService.updateMediaItem(temp);
+    var list = await kSongInfoListToMediaItemList(songs, currentSongIndex: 0);
+    list[index] = temp;
+    await AudioService.updateQueue(list);
+  }
+
+  ///This function get list of songs from an album
+  Future<List<SongInfo>> getSongFromAlbum(String albumId) async {
+    List<SongInfo> songs = await flutterAudioQuery.getSongsFromAlbum(
+        albumId: albumId, sortType: SongSortType.SMALLER_TRACK_NUMBER);
+    return songs;
+  }
+
   @override
   ThemeData appBarTheme(BuildContext context) {
     return super.appBarTheme(context);
@@ -30,6 +50,7 @@ class SearchPage extends SearchDelegate {
 
   @override
   Widget buildLeading(BuildContext context) {
+    searchFuture = searchAppForSong(query);
     return IconButton(
       icon: Icon(Icons.arrow_back),
       onPressed: () {
@@ -46,7 +67,7 @@ class SearchPage extends SearchDelegate {
   @override
   Widget buildResults(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
-      future: searchAppForSong(query),
+      future: searchFuture,
       builder: (context, snapshot) {
         print(snapshot.connectionState);
 
@@ -91,21 +112,30 @@ class SearchPage extends SearchDelegate {
                 physics: NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
                 itemCount: songs.length > 5 ? 5 : songs.length,
-                itemBuilder: (context, index) => MusicListItem(
-                  title: songs[index].title,
-                  artist: songs[index].artist,
-                  song: songs[index],
-                  textAreaLength: MediaQuery.of(context).size.width - 229,
-                  thePlaying: true,
-                  onClick: () {},
-                  albumArt: songs[index].albumArtwork == null
-                      ? getAlbumArtPath(songs[index].albumId)
-                      : songs[index].albumArtwork,
-                  color: Color(0xFFE6E6E6),
-                  iconColor: Color(0xFF5C5C5C),
-                  subtitleTextColor: Colors.black,
-                  titleTextColor: Colors.black,
-                ),
+                itemBuilder: (context, index) => StreamBuilder<MediaItem>(
+                    stream: AudioService.currentMediaItemStream,
+                    builder: (context, snapshot) {
+                      MediaItem currentMediaItem = snapshot?.data;
+                      final song = songs[index];
+                      return MusicListItem(
+                        title: songs[index].title,
+                        artist: songs[index].artist,
+                        song: songs[index],
+                        textAreaLength: MediaQuery.of(context).size.width - 229,
+                        thePlaying:
+                            kIfSongIsPlaying(currentMediaItem, song.filePath),
+                        onClick: () {
+                          playSong(songs[index].albumId);
+                        },
+                        albumArt: songs[index].albumArtwork == null
+                            ? getAlbumArtPath(songs[index].albumId)
+                            : songs[index].albumArtwork,
+                        color: Color(0xFFE6E6E6),
+                        iconColor: Color(0xFF5C5C5C),
+                        subtitleTextColor: Colors.black,
+                        titleTextColor: Colors.black,
+                      );
+                    }),
               ),
               songs.length > 5
                   ? Align(
@@ -169,10 +199,13 @@ class SearchPage extends SearchDelegate {
                   typeOfAlbumItem: 'album',
                   icon: Icons.play_arrow,
                   title: albums[index].title,
-                  albumArtwork:  albums[index].albumArt == null
-                          ? getAlbumArtPath(albums[index].id)
-                          : albums[index].albumArt,
+                  albumArtwork: albums[index].albumArt == null
+                      ? getAlbumArtPath(albums[index].id)
+                      : albums[index].albumArt,
                   item: albums[index],
+                  onPressed: () {
+                    playSong(albums[index].id);
+                  },
                 ),
               ),
               SizedBox(
@@ -232,16 +265,16 @@ class SearchPage extends SearchDelegate {
                   crossAxisSpacing: 25,
                   mainAxisSpacing: 25,
                 ),
-                itemCount: artist.length > 5 ? 5 : artist.length,
+                itemCount: artist.length > 4 ? 4 : artist.length,
                 itemBuilder: (context, index) => AlbumItem(
                   playButton: true,
                   borderRadius: BorderRadius.circular(5),
                   typeOfAlbumItem: 'artist',
                   icon: Icons.play_arrow,
                   title: artist[index].name,
-                  albumArtwork:  artist[index].artistArtPath == null
-                    ? getArtistArtPath(artist[index].id)
-                    : artist[index].artistArtPath,
+                  albumArtwork: artist[index].artistArtPath == null
+                      ? getArtistArtPath(artist[index].id)
+                      : artist[index].artistArtPath,
                   item: artist[index],
                 ),
               ),
@@ -249,7 +282,7 @@ class SearchPage extends SearchDelegate {
                   ? Align(
                       alignment: Alignment.centerRight,
                       child: Text(
-                        '${artist.length - 5} more',
+                        '${artist.length - 4} more',
                         textScaleFactor: 0.9,
                         style: Theme.of(context).textTheme.button.copyWith(
                               fontSize: 13,
@@ -285,7 +318,7 @@ class SearchPage extends SearchDelegate {
                   crossAxisSpacing: 25,
                   mainAxisSpacing: 25,
                 ),
-                itemCount: playlist.length > 5 ? 5 : playlist.length,
+                itemCount: playlist.length > 4 ? 4 : playlist.length,
                 itemBuilder: (context, index) => AlbumItem(
                   playButton: true,
                   borderRadius: BorderRadius.circular(5),
@@ -300,7 +333,7 @@ class SearchPage extends SearchDelegate {
                   ? Align(
                       alignment: Alignment.centerRight,
                       child: Text(
-                        '${playlist.length - 5} more',
+                        '${playlist.length - 4} more',
                         textScaleFactor: 0.9,
                         style: Theme.of(context).textTheme.button.copyWith(
                             fontSize: 13,
