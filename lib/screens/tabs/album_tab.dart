@@ -7,7 +7,8 @@ import '../../constant.dart';
 
 class AlbumTab extends StatefulWidget {
   const AlbumTab({
-    Key key, @required this.albums,
+    Key key,
+    @required this.albums,
   }) : super(key: key);
 
   final List albums;
@@ -17,8 +18,6 @@ class AlbumTab extends StatefulWidget {
 }
 
 class _AlbumTabState extends State<AlbumTab> {
-
-
   ///this function plays the selected song
   playSong(int albumIndex) async {
     int index = 0;
@@ -52,7 +51,8 @@ class _AlbumTabState extends State<AlbumTab> {
           itemBuilder: (context, index) {
             return GestureDetector(
               onTap: () async {
-                List<SongInfo> songs = await getSongFromAlbum(widget.albums[index].id);
+                List<SongInfo> songs =
+                    await getSongFromAlbum(widget.albums[index].id);
 
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -63,7 +63,7 @@ class _AlbumTabState extends State<AlbumTab> {
                         songList: songs,
                         title: widget.albums[index].title,
                         albumIndex: index,
-                        artWork: widget.albums[index].albumArt,
+                        artWork: getAlbumArtPath(widget.albums[index].id),
                       );
                     },
                   ),
@@ -78,6 +78,7 @@ class _AlbumTabState extends State<AlbumTab> {
                       typeOfAlbumItem: 'album',
                       onPressed: () async {
                         playSong(index);
+                        getAlbumArtPath(widget.albums[index].id);
                       },
                       icon: snapshot.hasData &&
                               snapshot.data.extras['albumId'] ==
@@ -85,7 +86,9 @@ class _AlbumTabState extends State<AlbumTab> {
                           ? Icons.pause
                           : Icons.play_arrow,
                       title: widget.albums[index].title,
-                      albumArtwork:widget. albums[index].albumArt,
+                      albumArtwork: widget.albums[index].albumArt == null
+                          ? getAlbumArtPath(widget.albums[index].id)
+                          : widget.albums[index].albumArt,
                       borderRadius: BorderRadius.circular(5),
                     );
                   }),

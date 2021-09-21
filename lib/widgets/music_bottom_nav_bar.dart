@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -52,16 +53,7 @@ class MusicBottomNavBar extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                FutureBuilder<Uint8List>(
-                  future: FlutterAudioQuery().getArtwork(
-                    type: ResourceType.SONG,
-                    id: currentMediaItem != null
-                        ? currentMediaItem?.extras['songId']
-                        : '1000000000',
-                  ),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData && snapshot.data.isNotEmpty) {
-                      return Container(
+              currentAlbumArt != null  ? Container(
                         height: 45,
                         width: 42.5,
                         decoration: BoxDecoration(
@@ -69,12 +61,10 @@ class MusicBottomNavBar extends StatelessWidget {
                           borderRadius: BorderRadius.circular(3),
                           image: DecorationImage(
                             fit: BoxFit.cover,
-                            image: MemoryImage(snapshot.data),
+                            image: FileImage(File(currentAlbumArt)),
                           ),
                         ),
-                      );
-                    } else {
-                      return Container(
+                      ): Container(
                         height: 45,
                         width: 42.5,
                         decoration: BoxDecoration(
@@ -89,10 +79,8 @@ class MusicBottomNavBar extends StatelessWidget {
                             ]),
                         child: Icon(FeatherIcons.music,
                             size: 18, color: Color(0xFF5C5C5C)),
-                      );
-                    }
-                  },
-                ),
+                      ),
+                    
                 SizedBox(
                   width: 20,
                 ),

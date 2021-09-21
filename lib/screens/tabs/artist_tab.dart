@@ -61,7 +61,7 @@ class _ArtistTabState extends State<ArtistTab> {
                         songList: songs,
                         title: widget.artist[index].name,
                         albumIndex: index,
-                        artWork: widget.artist[index].artistArtPath,
+                        artWork: getArtistArtPath(widget.artist[index].id),
                       );
                     },
                   ),
@@ -76,7 +76,9 @@ class _ArtistTabState extends State<ArtistTab> {
                 },
                 icon: Icons.play_arrow,
                 title: widget.artist[index].name,
-                albumArtwork: widget.artist[index].artistArtPath,
+                albumArtwork: widget.artist[index].artistArtPath == null
+                    ? getArtistArtPath(widget.artist[index].id)
+                    : widget.artist[index].artistArtPath,
                 borderRadius: BorderRadius.circular(5),
               ),
             );

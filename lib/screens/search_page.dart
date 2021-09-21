@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
+import 'package:music_app_v3/constant.dart';
 import 'package:music_app_v3/models/playlist_data.dart';
 import 'package:music_app_v3/screens/detailed_search_result.dart';
 import 'package:music_app_v3/utils/utils.dart';
 import 'package:music_app_v3/widgets/album_item.dart';
 import 'package:music_app_v3/widgets/music_list_item.dart';
-
 
 // final HiveDb hiveDb = HiveDb();
 
@@ -27,7 +27,6 @@ class SearchPage extends SearchDelegate {
   ThemeData appBarTheme(BuildContext context) {
     return super.appBarTheme(context);
   }
-
 
   @override
   Widget buildLeading(BuildContext context) {
@@ -99,6 +98,9 @@ class SearchPage extends SearchDelegate {
                   textAreaLength: MediaQuery.of(context).size.width - 229,
                   thePlaying: true,
                   onClick: () {},
+                  albumArt: songs[index].albumArtwork == null
+                      ? getAlbumArtPath(songs[index].albumId)
+                      : songs[index].albumArtwork,
                   color: Color(0xFFE6E6E6),
                   iconColor: Color(0xFF5C5C5C),
                   subtitleTextColor: Colors.black,
@@ -167,7 +169,9 @@ class SearchPage extends SearchDelegate {
                   typeOfAlbumItem: 'album',
                   icon: Icons.play_arrow,
                   title: albums[index].title,
-                  albumArtwork: albums[index].albumArt,
+                  albumArtwork:  albums[index].albumArt == null
+                          ? getAlbumArtPath(albums[index].id)
+                          : albums[index].albumArt,
                   item: albums[index],
                 ),
               ),
@@ -235,7 +239,9 @@ class SearchPage extends SearchDelegate {
                   typeOfAlbumItem: 'artist',
                   icon: Icons.play_arrow,
                   title: artist[index].name,
-                  albumArtwork: '',
+                  albumArtwork:  artist[index].artistArtPath == null
+                    ? getArtistArtPath(artist[index].id)
+                    : artist[index].artistArtPath,
                   item: artist[index],
                 ),
               ),

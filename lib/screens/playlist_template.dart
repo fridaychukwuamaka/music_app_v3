@@ -84,7 +84,7 @@ class _PlaylistTemplatePageState extends State<PlaylistTemplatePage>
               builder: (context, snapshot) {
                 final List<SongInfo> songs = snapshot?.data;
 
-                final int songLength =  songs.length;
+                final int songLength = songs.length;
 
                 return Stack(
                   children: <Widget>[
@@ -100,7 +100,8 @@ class _PlaylistTemplatePageState extends State<PlaylistTemplatePage>
                               height: 280,
                               decoration: BoxDecoration(
                                 image: DecorationImage(
-                                  image: AssetImage('assets/images/mink-mingle-HRyjETL87Gg-unsplash.jpg'),
+                                  image: AssetImage(
+                                      'assets/images/mink-mingle-HRyjETL87Gg-unsplash.jpg'),
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -249,11 +250,9 @@ class _PlaylistTemplatePageState extends State<PlaylistTemplatePage>
                                     artist: songs[index].artist,
                                     color: Color(0xFFE6E6E6),
                                     iconColor: Color(0xFF5C5C5C),
-                                    albumArt: songs[index].albumArtwork !=
-                                                null &&
-                                            songs[index].albumArtwork != null
-                                        ? songs[index].albumArtwork
-                                        : null,
+                                    albumArt: songs[index].albumArtwork == null
+                                        ? getAlbumArtPath(songs[index].albumId)
+                                        : songs[index].albumArtwork,
                                     song: songs[index],
                                     songIndex: index,
                                     page: 'playlist',

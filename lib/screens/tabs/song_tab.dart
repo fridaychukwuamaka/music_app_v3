@@ -20,7 +20,7 @@ class SongTab extends StatefulWidget {
 
 class _SongTabState extends State<SongTab> {
   ///this function plays the selected song
-  Future<void> playSong(List<SongInfo> song, int index) async {
+  Future<void> playSong(List song, int index) async {
     MediaItem temp = await kSongInfoToMediaItem(song[index], index);
     await AudioService.playMediaItem(temp);
     await AudioService.updateMediaItem(temp);
@@ -41,21 +41,23 @@ class _SongTabState extends State<SongTab> {
               stream: AudioService.currentMediaItemStream,
               builder: (context, snapshot) {
                 MediaItem currentMediaItem = snapshot?.data;
-                //print(snapshot.data);
+                final song = widget?.songs[index];
                 return MusicListItem(
                   textAreaLength: MediaQuery.of(context).size.width - 229,
                   color: Color(0xFFE6E6E6),
                   iconColor: Color(0xFF5C5C5C),
-                  thePlaying: kIfSongIsPlaying(
-                      currentMediaItem, widget.songs[index].filePath),
-                  title: widget.songs[index].title,
-                  albumArt: widget.songs[index].albumArtwork,
-                  artist: widget.songs[index].artist,
-                  song: widget.songs[index],
+                  thePlaying: kIfSongIsPlaying(currentMediaItem, song.filePath),
+                  title: song.title,
+                  albumArt: song.albumArtwork == null
+                      ? getAlbumArtPath(song.albumId)
+                      : song.albumArtwork,
+                  artist: song.artist,
+                  song: song,
                   songIndex: index,
                   songList: widget.songs,
                   onClick: () async {
                     await playSong(widget.songs, index);
+                  
                   },
                   subtitleTextColor: Colors.black,
                   titleTextColor: Colors.black,

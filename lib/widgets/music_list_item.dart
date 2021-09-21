@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/cupertino.dart';
@@ -79,42 +80,41 @@ class MusicListItem extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                FutureBuilder<Uint8List>(
-                    future: FlutterAudioQuery().getArtwork(
-                      type: ResourceType.SONG,
-                      id: song.runtimeType == SongInfo
-                          ? song.id
-                          : song.extras['songId'],
-                    ),
-                    builder: (context, snapshot) {
-                      return Container(
-                        height: 45,
-                        width: 42.5,
-                        decoration: BoxDecoration(
-                          color: color == null ? Colors.black : color,
+                Container(
+                  height: 45,
+                  width: 42.5,
+                  decoration: BoxDecoration(
+                    color: color == null ? Colors.black : color,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: albumArt != null
+                      ? ClipRRect(
                           borderRadius: BorderRadius.circular(3),
-                        ),
-                        child: snapshot.hasData && snapshot.data.isNotEmpty
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(3),
-                                child: Image.memory(
-                                  snapshot.data,
-                                  height: double.infinity,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  filterQuality: FilterQuality.medium,
-                                  gaplessPlayback: true,
-                                ),
-                              )
-                            : Icon(
+                          child: Image.file(
+                            File(albumArt),
+                            height: double.infinity,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            filterQuality: FilterQuality.medium,
+                            gaplessPlayback: true,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Center(
+                              child: Icon(
                                 FeatherIcons.music,
                                 size: 18,
                                 color: iconColor == null
                                     ? Colors.white
                                     : iconColor,
                               ),
-                      );
-                    }),
+                            ),
+                          ),
+                        )
+                      : Icon(
+                          FeatherIcons.music,
+                          size: 18,
+                          color: iconColor == null ? Colors.white : iconColor,
+                        ),
+                ),
                 SizedBox(
                   width: 15,
                 ),

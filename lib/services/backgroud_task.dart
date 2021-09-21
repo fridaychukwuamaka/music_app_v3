@@ -141,7 +141,6 @@ class MyBackgroundTask extends BackgroundAudioTask {
 
   @override
   Future<void> onUpdateMediaItem(MediaItem mediaItem) async {
-    print('hide:: ${mediaItem.artUri}');
     AudioServiceBackground.setMediaItem(mediaItem);
     return super.onUpdateMediaItem(mediaItem);
   }

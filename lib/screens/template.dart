@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/cupertino.dart';
@@ -159,21 +160,13 @@ class _TemplatePageState extends State<TemplatePage>
                   width: MediaQuery.of(context).size.width,
                   child: Stack(
                     children: <Widget>[
-                      FutureBuilder<Uint8List>(
-                          future: FlutterAudioQuery().getArtwork(
-                              type: typeOfTemplate == 'album'
-                                  ? ResourceType.ALBUM
-                                  : ResourceType.ARTIST,
-                              id: albumId),
-                          builder: (context, snapshot) {
-                            return Positioned(
+                   Positioned(
                                 child: Container(
                               height: 280,
                               decoration: BoxDecoration(
                                 image: DecorationImage(
-                                  image: snapshot.hasData &&
-                                          snapshot.data.isNotEmpty
-                                      ? MemoryImage(snapshot?.data)
+                                  image: artWork != null
+                                      ? FileImage(File(artWork))
                                       : AssetImage(typeOfTemplate == 'album'
                                           ? 'assets/images/adrian-korte-5gn2soeAc40-unsplash.jpg'
                                           : 'assets/images/jefferson-santos-fCEJGBzAkrU-unsplash.jpg'),
@@ -188,8 +181,7 @@ class _TemplatePageState extends State<TemplatePage>
                                 ],
                               ), */
                               ),
-                            ));
-                          }),
+                            )),
                       Positioned(
                         child: MusicAppBar(
                           title: '',
@@ -368,10 +360,9 @@ class _TemplatePageState extends State<TemplatePage>
                               artist: songList[index].artist,
                               color: Color(0xFFE6E6E6),
                               iconColor: Color(0xFF5C5C5C),
-                              albumArt: songList[index].albumArtwork != null &&
-                                      songList[index].albumArtwork != null
-                                  ? songList[index].albumArtwork
-                                  : null,
+                              albumArt: songList[index].albumArtwork == null
+                                  ? getAlbumArtPath(songList[index].albumId)
+                                  : songList[index].albumArtwork,
                               song: songList[index],
                               songIndex: index,
                               page: typeOfTemplate,

@@ -68,6 +68,7 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                   stream: AudioService.currentMediaItemStream,
                   initialData: AudioService.currentMediaItem,
                   builder: (context, snapshot) {
+                    print(snapshot?.data?.artUri);
                     return Positioned(
                       top: 0,
                       child: snapshot.hasData && snapshot?.data?.artUri != null

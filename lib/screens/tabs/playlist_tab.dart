@@ -22,22 +22,12 @@ class _PlaylistTabState extends State<PlaylistTab> {
  
 
   void initState() {
-   createFavoritePlaylist();
     super.initState();
   }
 
   ///This function get the artist on the device
  
-  Future createFavoritePlaylist() async {
-    var favorite = PlaylistData(
-      name: 'Liked',
-      creationDate: DateTime.now().toString(),
-      memberIds: [],
-      id: uuid.v4(),
-    );
-    await playlistService.addPlaylist(favorite);
-  }
-
+  
   ///This function get list of songs from a playlist
   Future<List<SongInfo>> getSongFromPlaylist(String playlistId) async {
     PlaylistData temp = widget.playlist.singleWhere((e) => e.id == playlistId);

@@ -1,8 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
+import 'package:device_info/device_info.dart';
+import 'package:music_app_v3/models/playlist_data.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:hive/hive.dart';
 import 'package:music_app_v3/screens/search_page.dart';
@@ -14,6 +20,8 @@ import 'package:music_app_v3/services/backgroud_task.dart';
 import 'package:music_app_v3/utils/utils.dart';
 import 'package:music_app_v3/widgets/music_app_bar.dart';
 import 'package:music_app_v3/widgets/music_bottom_nav_bar.dart';
+
+import '../constant.dart';
 
 //TODO: 1. ALBUM ITEM FOR LIGHT IMAGES
 //TODO: 2. FIX WHEN QUEUE STOP
@@ -30,26 +38,69 @@ class _MyHomePageState extends State<MyHomePage>
   TabController _tabController;
   PageController _pageController;
   bool setupLoop = false;
-  int tabIndex;
+
+  Future<Map<String, dynamic>> _allItemFuture;
 
   StreamSubscription audioServiceRunning;
-
-  openDbBoxes() async {
-    await Hive.openBox('playlist');
-  }
 
   @override
   void initState() {
     _tabController = TabController(length: 4, vsync: this, initialIndex: 0);
     _pageController = PageController(initialPage: 0);
+    _allItemFuture = getAllItems();
+    createFavoritePlaylist();
     onBackground();
     setRunningStream();
     super.initState();
   }
 
+  Future createFavoritePlaylist() async {
+    var favorite = PlaylistData(
+      name: 'Liked',
+      creationDate: DateTime.now().toString(),
+      memberIds: [],
+      id: uuid.v4(),
+    );
+    await playlistService.addPlaylist(favorite);
+  }
+
   Future<Map<String, dynamic>> getAllItems() async {
+    var songs = await flutterAudioQuery.getSongs();
+    final tempDir = Directory.systemTemp;
+
+    var androidInfo = await DeviceInfoPlugin().androidInfo;
+    var sdkInt = androidInfo.version.sdkInt;
+
+    if (sdkInt >= 29) {
+      Stream.fromIterable(songs).forEach((e) async {
+        if (!File('${tempDir.path}/album-${e.albumId}.png').existsSync()) {
+          var img =
+              await audioQuery.getArtwork(type: ResourceType.SONG, id: e.id);
+
+          if (img != null) {
+            final File albumArtFile =
+                await new File('${tempDir.path}/album-${e.albumId}.png')
+                    .create();
+            albumArtFile.writeAsBytesSync(img, mode: FileMode.append);
+          }
+        }
+
+        if (!File('${tempDir.path}/artist-${e.artistId}.png').existsSync()) {
+          //CREATE ARTIST ART WORK
+          var artistImg = await audioQuery.getArtwork(
+              type: ResourceType.ARTIST, id: e.artistId);
+          if (artistImg != null) {
+            final File artistArtFile =
+                await new File('${tempDir.path}/artist-${e.artistId}.png')
+                    .create();
+            artistArtFile.writeAsBytesSync(artistImg, mode: FileMode.append);
+          }
+        }
+      });
+    }
+
     Map<String, dynamic> result = {
-      'songs': await flutterAudioQuery.getSongs(),
+      'songs': songs,
       'album': await flutterAudioQuery.getAlbums(),
       'artist': await flutterAudioQuery.getArtists(),
       'playlist': await playlistService.getPlaylist(),
@@ -138,6 +189,8 @@ class _MyHomePageState extends State<MyHomePage>
 
   @override
   Widget build(BuildContext context) {
+    print('rebuiltfff');
+    int tabIndex = 0;
     return Scaffold(
       drawer: Drawer(
         child: ListView(
@@ -290,9 +343,8 @@ class _MyHomePageState extends State<MyHomePage>
               padding: const EdgeInsets.only(bottom: 15.0),
               child: TabBar(
                 onTap: (val) {
-                  setState(() {
-                    tabIndex = val;
-                  });
+                  tabIndex = val;
+
                   _pageController.animateToPage(
                     val,
                     duration: kTabScrollDuration,
@@ -335,14 +387,13 @@ class _MyHomePageState extends State<MyHomePage>
             Expanded(
                 child: FutureBuilder<Map<String, dynamic>>(
                     initialData: initialItemData,
-                    future: getAllItems(),
+                    future: _allItemFuture,
                     builder: (context, snapshot) {
+                      print('rebuilt');
                       return PageView(
                         controller: _pageController,
                         onPageChanged: (val) {
-                          setState(() {
-                            tabIndex = val;
-                          });
+                          tabIndex = val;
 
                           _tabController.animateTo(val);
                         },

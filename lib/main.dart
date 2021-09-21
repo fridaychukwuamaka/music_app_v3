@@ -1,16 +1,17 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:music_app_v3/screens/home_page.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_service/audio_service.dart';
-import 'package:path_provider/path_provider.dart';
 import './services/music_service.dart';
 
 Future<void> initHive() async {
-  final appDocumentDir = await getApplicationDocumentsDirectory();
-  Hive.init(appDocumentDir.path);
-  await Hive.initFlutter();
+ // final appDocumentDir = Directory.current.path;
+ 
+  await Hive. initFlutter();
   await Hive.openBox('playingAlbum');
   await Hive.openBox('shuffle');
   await Hive.openBox('initialSongs');
@@ -25,22 +26,18 @@ Future<void> initHive() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    await initHive();
-    WidgetsFlutterBinding.ensureInitialized();
-    runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(
-            create: (context) => MusicService(),
-          ),
-        ],
-        child: MyApp(),
-      ),
-    );
-  } catch (e) {
-    //print("error occurd in main: $e");
-  }
+  await initHive();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => MusicService(),
+        ),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -48,9 +45,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      
       debugShowCheckedModeBanner: false,
-      
       title: 'Music App',
       themeMode: ThemeMode.system,
       theme: ThemeData(
@@ -59,7 +54,7 @@ class MyApp extends StatelessWidget {
           buttonColor: Colors.orange,
         ),
         iconTheme: IconThemeData(color: Colors.white),
-       
+
         popupMenuTheme: PopupMenuThemeData(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(7),
