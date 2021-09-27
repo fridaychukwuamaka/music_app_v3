@@ -57,7 +57,7 @@ class _SongTabState extends State<SongTab> {
                   songList: widget.songs,
                   onClick: () async {
                     await playSong(widget.songs, index);
-                  
+                   
                   },
                   subtitleTextColor: Colors.black,
                   titleTextColor: Colors.black,

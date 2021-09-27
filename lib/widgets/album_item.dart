@@ -150,7 +150,7 @@ class _AlbumItemState extends State<AlbumItem> {
       decoration: BoxDecoration(
         borderRadius: widget.borderRadius,
         color: Color(0xFFE6E6E6),
-        boxShadow: widget.albumArtwork != null
+        boxShadow: hasImage()
             ? [
                 BoxShadow(
                   offset: Offset(0, 3),

@@ -61,6 +61,7 @@ class MyBackgroundTask extends BackgroundAudioTask {
   }
 
   AudioProcessingState _getProcessingState() {
+    print(_player.processingState);
     if (_skipState != null) return _skipState;
     switch (_player.processingState) {
       case ProcessingState.idle:
@@ -94,21 +95,27 @@ class MyBackgroundTask extends BackgroundAudioTask {
     });
 
     _player.processingStateStream.listen((state) async {
+      print('loopMode njnj');
+      print(loopMode);
       switch (state) {
         case ProcessingState.completed:
           // when a song is completed it goes to the next one in the list if it is not the last element in the index
           if (loopMode == AudioServiceRepeatMode.one) {
+            print('dnfkn');
             repeatOneSong();
           } else if (AudioServiceBackground.queue.last.id ==
                   AudioServiceBackground.mediaItem.id &&
               loopMode == AudioServiceRepeatMode.none) {
             _player.stop();
+            print('seccc');
           } else if (AudioServiceBackground.queue.last.id ==
                   AudioServiceBackground.mediaItem.id &&
               loopMode == AudioServiceRepeatMode.all) {
             repeatFromBegining();
+            print('thijdjf');
           } else {
             onSkipToNext();
+            print('neet');
           }
           // onStop();
           break;
@@ -137,6 +144,12 @@ class MyBackgroundTask extends BackgroundAudioTask {
   @override
   Future<void> onClick(MediaButton button) {
     return super.onClick(button);
+  }
+
+  @override
+  Future<void> onPrepareFromMediaId(String mediaId) {
+    // TODO: implement onPrepareFromMediaId
+    return super.onPrepareFromMediaId(mediaId);
   }
 
   @override
@@ -269,7 +282,7 @@ class MyBackgroundTask extends BackgroundAudioTask {
         AudioServiceBackground.setMediaItem(mediaItem);
         break;
       case 'SET-FILE-PATH':
-       await _player.setFilePath(arguments);
+        await _player.setFilePath(arguments);
         break;
       case 'SET-STATE':
         await AudioServiceBackground.setState(

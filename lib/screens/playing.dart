@@ -144,75 +144,41 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                 right: 0,
                 child: Column(
                   children: <Widget>[
-                    StreamBuilder<SliderState>(
-                      initialData: SliderState(
-                        AudioService.playbackState.position,
-                        AudioService.currentMediaItem,
-                        AudioService.playbackState,
-                      ),
-                      stream: Rx.combineLatest3<dynamic, dynamic, dynamic,
-                          SliderState>(
-                        AudioService.positionStream,
-                        AudioService.currentMediaItemStream,
-                        AudioService.playbackStateStream,
-                        (
-                          position,
-                          mediaItem,
-                          playState,
-                        ) =>
-                            SliderState(
-                          position,
-                          mediaItem,
-                          playState,
+                   Column(
+                      children: [
+                        MusicSlider(
+                          /* onChanged: (val) {
+                            changing = true;
+                            if (sliderVal != val) {
+                              sliderVal = val;
+                            }
+                          },
+                          onChangeEnd: (val) async {
+                            AudioService.seekTo(
+                                Duration(milliseconds: val.toInt()));
+
+                            await Future.delayed(
+                              Duration(milliseconds: 1000),
+                              () {
+                                sliderVal = AudioService.playbackState
+                                    .currentPosition.inMilliseconds
+                                    .toDouble();
+
+                                changing = false;
+                              },
+                            );
+                          }, */
+                       /*    sliderVal: sliderVal,
+                          changing: changing,
+                          favorite: favorite,
+                          onFavorite: () async {},
+                          checkIfFavorite: () {},
+                          playing: playbackState.playing,
+                          currentMediaItem: currentMediaItem,
+                          position: position,
+                          playbackState: playbackState, */
                         ),
-                      ),
-                      builder: (BuildContext context, AsyncSnapshot snapshot) {
-                        SliderState sliderState = snapshot.data;
-
-                        final MediaItem currentMediaItem =
-                            sliderState.mediaItem;
-
-                        final PlaybackState playbackState =
-                            sliderState.playbackState;
-                        final Duration position = sliderState.position;
-
-                        return Column(
-                          children: [
-                            MusicSlider(
-                              onChanged: (val) {
-                                changing = true;
-                                if (sliderVal != val) {
-                                  sliderVal = val;
-                                }
-                              },
-                              onChangeEnd: (val) async {
-                                AudioService.seekTo(
-                                    Duration(milliseconds: val.toInt()));
-
-                                await Future.delayed(
-                                  Duration(milliseconds: 1000),
-                                  () {
-                                    sliderVal = AudioService.playbackState
-                                        .currentPosition.inMilliseconds
-                                        .toDouble();
-
-                                    changing = false;
-                                  },
-                                );
-                              },
-                              sliderVal: sliderVal,
-                              changing: changing,
-                              favorite: favorite,
-                              onFavorite: () async {},
-                              checkIfFavorite: () {},
-                              playing: playbackState.playing,
-                              currentMediaItem: currentMediaItem,
-                              position: position,
-                              playbackState: playbackState,
-                            ),
-                          ],
-                        );
-                      },
+                      ],
                     ),
                     Padding(
                       padding: const EdgeInsets.only(

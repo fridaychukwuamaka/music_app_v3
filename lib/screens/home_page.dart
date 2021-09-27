@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:math';
 import 'package:device_info/device_info.dart';
 import 'package:music_app_v3/models/playlist_data.dart';
+import 'package:music_app_v3/screens/playing.dart';
+import 'package:music_app_v3/screens/setting.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:audio_service/audio_service.dart';
@@ -20,13 +23,9 @@ import 'package:music_app_v3/services/backgroud_task.dart';
 import 'package:music_app_v3/utils/utils.dart';
 import 'package:music_app_v3/widgets/music_app_bar.dart';
 import 'package:music_app_v3/widgets/music_bottom_nav_bar.dart';
-
 import '../constant.dart';
 
-
-//TODO: 2. FIX WHEN QUEUE STOP
 //TODO: 3. HEADSET BUTTON WHEN APP IS ON
-//TODO: 4. LOCKSCREEN ISSUE
 
 class MyHomePage extends StatefulWidget {
   @override
@@ -38,10 +37,12 @@ class _MyHomePageState extends State<MyHomePage>
   TabController _tabController;
   PageController _pageController;
   bool setupLoop = false;
+  bool notification = false;
 
   Future<Map<String, dynamic>> _allItemFuture;
 
   StreamSubscription audioServiceRunning;
+  StreamSubscription notificationStream;
 
   @override
   void initState() {
@@ -52,6 +53,29 @@ class _MyHomePageState extends State<MyHomePage>
     onBackground();
     setRunningStream();
     super.initState();
+  }
+
+  notifier() {
+    AudioService.browseMediaChildren;
+    AudioService.setBrowseMediaParent();
+    notificationStream =
+        AudioService.notificationClickEventStream.listen((event) async {
+      print(event);
+      print('event');
+      print(AudioService.notificationClickEvent);
+      /*  if (event) {
+      notification = event;
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return PlayingPage();
+            },
+          ),
+        );
+        notification = false;
+      } */
+    });
   }
 
   Future createFavoritePlaylist() async {
@@ -66,33 +90,36 @@ class _MyHomePageState extends State<MyHomePage>
 
   Future<Map<String, dynamic>> getAllItems() async {
     var songs = await flutterAudioQuery.getSongs();
+    var album = await flutterAudioQuery.getAlbums();
+    var artist = await flutterAudioQuery.getArtists();
     final tempDir = Directory.systemTemp;
 
     var androidInfo = await DeviceInfoPlugin().androidInfo;
     var sdkInt = androidInfo.version.sdkInt;
 
     if (sdkInt >= 29) {
-      Stream.fromIterable(songs).forEach((e) async {
-        if (!File('${tempDir.path}/album-${e.albumId}.png').existsSync()) {
+      await Stream.fromIterable(album).forEach((e) async {
+        if (!File('${tempDir.path}/album-${e.id}.png').existsSync()) {
           var img =
-              await audioQuery.getArtwork(type: ResourceType.SONG, id: e.id);
+              await audioQuery.getArtwork(type: ResourceType.ALBUM, id: e.id);
 
-          if (img != null ) {
+          if (img != null) {
             final File albumArtFile =
-                await new File('${tempDir.path}/album-${e.albumId}.png')
-                    .create();
+                await File('${tempDir.path}/album-${e.id}.png').create();
+
             albumArtFile.writeAsBytesSync(img, mode: FileMode.append);
           }
         }
+      });
 
-        if (!File('${tempDir.path}/artist-${e.artistId}.png').existsSync()) {
+      await Stream.fromIterable(artist).forEach((e) async {
+        if (!File('${tempDir.path}/artist-${e.id}.png').existsSync()) {
           //CREATE ARTIST ART WORK
-          var artistImg = await audioQuery.getArtwork(
-              type: ResourceType.ARTIST, id: e.artistId);
-          if (artistImg != null  ) {
+          var artistImg =
+              await audioQuery.getArtwork(type: ResourceType.ARTIST, id: e.id);
+          if (artistImg != null) {
             final File artistArtFile =
-                await new File('${tempDir.path}/artist-${e.artistId}.png')
-                    .create();
+                await File('${tempDir.path}/artist-${e.id}.png').create();
             artistArtFile.writeAsBytesSync(artistImg, mode: FileMode.append);
           }
         }
@@ -101,8 +128,8 @@ class _MyHomePageState extends State<MyHomePage>
 
     Map<String, dynamic> result = {
       'songs': songs,
-      'album': await flutterAudioQuery.getAlbums(),
-      'artist': await flutterAudioQuery.getArtists(),
+      'album': album,
+      'artist': artist,
       'playlist': await playlistService.getPlaylist(),
     };
 
@@ -138,9 +165,8 @@ class _MyHomePageState extends State<MyHomePage>
 
       await AudioService.seekTo(Duration(milliseconds: position));
 
-
       if (Hive.box('lastQueue').isNotEmpty) {
-      var lastqueue = await Hive.box('lastQueue').get('lastQueue');
+        var lastqueue = await Hive.box('lastQueue').get('lastQueue');
         dynamic originalSong = json.decode(lastqueue);
 
         originalSong = List<MediaItem>.from(
@@ -163,12 +189,12 @@ class _MyHomePageState extends State<MyHomePage>
       if (!event) {
         await onBackground();
       }
-      if (event && AudioService.currentMediaItem == null) {
-        await initNeccesarry();
-      }
       if (event && setupLoop == false) {
         setLoopMode();
         setupLoop = true;
+      }
+      if (event && AudioService.currentMediaItem == null) {
+        await initNeccesarry();
       }
     });
   }
@@ -181,15 +207,14 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   Map<String, dynamic> initialItemData = {
-    'songs': [],
-    'album': [],
-    'artist': [],
-    'playlist': []
+    'songs': null,
+    'album': null,
+    'artist': null,
+    'playlist': null
   };
 
   @override
   Widget build(BuildContext context) {
-    print('rebuiltfff');
     int tabIndex = 0;
     return Scaffold(
       drawer: Drawer(
@@ -228,21 +253,7 @@ class _MyHomePageState extends State<MyHomePage>
                 ),
               ),
             ),
-            ListTile(
-              leading: Icon(
-                FeatherIcons.moon,
-                size: 24,
-                color: Colors.black,
-              ),
-              title: Text(
-                'Dark mode',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-              ),
-            ),
+
             ListTile(
               leading: Icon(
                 FeatherIcons.logOut,
@@ -268,6 +279,14 @@ class _MyHomePageState extends State<MyHomePage>
                 size: 24,
                 color: Colors.black,
               ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (BuildContext context) => const SettingPage(),
+                  ),
+                );
+              },
               title: Text(
                 'Settings',
                 style: TextStyle(
@@ -306,6 +325,12 @@ class _MyHomePageState extends State<MyHomePage>
             )
           : null,
           floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling, */
+      /* floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+        
+        },
+        child: Icon(Icons.face),
+      ), */
       body: SafeArea(
         child: Column(
           children: <Widget>[
@@ -389,27 +414,34 @@ class _MyHomePageState extends State<MyHomePage>
                     initialData: initialItemData,
                     future: _allItemFuture,
                     builder: (context, snapshot) {
-                      print('rebuilt');
-                      return PageView(
-                        controller: _pageController,
-                        onPageChanged: (val) {
-                          tabIndex = val;
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        );
+                      } else {
+                        return PageView(
+                          controller: _pageController,
+                          onPageChanged: (val) {
+                            tabIndex = val;
 
-                          _tabController.animateTo(val);
-                        },
-                        children: [
-                          SongTab(
-                            songs: snapshot?.data['songs'],
-                          ),
-                          AlbumTab(
-                            albums: snapshot?.data['album'],
-                          ),
-                          ArtistTab(artist: snapshot?.data['artist']),
-                          PlaylistTab(
-                            playlist: snapshot?.data['playlist'],
-                          ),
-                        ],
-                      );
+                            _tabController.animateTo(val);
+                          },
+                          children: [
+                            SongTab(
+                              songs: snapshot?.data['songs'],
+                            ),
+                            AlbumTab(
+                              albums: snapshot?.data['album'],
+                            ),
+                            ArtistTab(artist: snapshot?.data['artist']),
+                            PlaylistTab(
+                              playlist: snapshot?.data['playlist'],
+                            ),
+                          ],
+                        );
+                      }
                     })),
           ],
         ),

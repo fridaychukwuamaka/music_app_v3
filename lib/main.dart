@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:hive/hive.dart';
 import 'package:music_app_v3/screens/home_page.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -9,9 +10,9 @@ import 'package:audio_service/audio_service.dart';
 import './services/music_service.dart';
 
 Future<void> initHive() async {
- // final appDocumentDir = Directory.current.path;
- 
-  await Hive. initFlutter();
+  // final appDocumentDir = Directory.current.path;
+
+  await Hive.initFlutter();
   await Hive.openBox('playingAlbum');
   await Hive.openBox('shuffle');
   await Hive.openBox('initialSongs');

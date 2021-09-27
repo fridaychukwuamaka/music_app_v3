@@ -58,9 +58,8 @@ Future<List<AlbumInfo>> searchAlbums({String query}) async {
 
 Future<List<PlaylistData>> searchPlayList({String query}) async {
   List<PlaylistData> playLists = await Playlist().getPlaylist();
-  List<PlaylistData> searchedPlaylists = [];
-  playLists
-      .where((e) => e.name.toLowerCase().contains(query.trim().toLowerCase()));
+  List<PlaylistData> searchedPlaylists = playLists
+      .where((e) => e.name.toLowerCase().contains(query.trim().toLowerCase())).toList();
   return searchedPlaylists;
 }
 
@@ -78,6 +77,7 @@ Future<Map<String, dynamic>> searchAppForSong(query) async {
   var album = await searchAlbums(query: query);
   var artist = await searchArtist(query: query);
   var playlist = await searchPlayList(query: query);
+
   Map<String, dynamic> result = {
     'songs': song,
     'album': album,

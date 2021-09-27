@@ -67,6 +67,7 @@ class _TemplatePageState extends State<TemplatePage>
     await AudioService.updateMediaItem(temp);
     var list =
         await kSongInfoListToMediaItemList(song, currentSongIndex: index);
+    list[index] = temp;
     await AudioService.updateQueue(list);
   }
 
@@ -99,8 +100,6 @@ class _TemplatePageState extends State<TemplatePage>
   IconData setIcon(MediaItem mediaItem) {
     String albumId = '';
     if (widget.typeOfTemplate == 'album' && mediaItem != null) {
-      print(widget.albumId);
-      print('fgfgkkdfkm');
       albumId = mediaItem.extras['albumId'];
       albumId = mediaItem.extras['albumId'];
       if (albumId != widget.albumId) {
@@ -109,10 +108,7 @@ class _TemplatePageState extends State<TemplatePage>
         return Icons.pause;
       }
     } else if (widget.typeOfTemplate == 'artist' && mediaItem != null) {
-      print(widget.albumId);
-      print('fgfgkkdfkm');
       albumId = mediaItem.extras['artistId'];
-      print(albumId);
       if (albumId != widget.albumId) {
         return Icons.play_arrow;
       } else {

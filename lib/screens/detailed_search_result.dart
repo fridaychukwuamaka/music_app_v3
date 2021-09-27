@@ -1,9 +1,6 @@
-import 'dart:convert';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
-import 'package:hive/hive.dart';
 import 'package:music_app_v3/screens/template.dart';
 import 'package:music_app_v3/widgets/album_item.dart';
 import 'package:music_app_v3/widgets/music_app_bar.dart';
@@ -46,10 +43,13 @@ class _DetailedSearchResultState extends State<DetailedSearchResult>
     return song;
   }
 
-  Future<List<SongInfo>> getSongFromPlaylist(PlaylistInfo playlist) async {
-    List<SongInfo> song =
-        await audioQuery.getSongsFromPlaylist(playlist: playlist);
-    return song;
+  Future<List<SongInfo>> getSongFromPlaylist(List<String> memberIds) async {
+    List<SongInfo> songs = await audioQuery.getSongsById(
+      ids: memberIds,
+      sortType: SongSortType.CURRENT_IDs_ORDER,
+    );
+
+    return songs;
   }
 
   bool playing;
@@ -92,6 +92,16 @@ class _DetailedSearchResultState extends State<DetailedSearchResult>
         });
       });
     }
+  }
+
+  Future<void> playSong(List song, int index) async {
+    MediaItem temp = await kSongInfoToMediaItem(song[index], index);
+    await AudioService.playMediaItem(temp);
+    await AudioService.updateMediaItem(temp);
+    List<MediaItem> list =
+        await kSongInfoListToMediaItemList(song, currentSongIndex: index);
+    list[index] = temp;
+    await AudioService.updateQueue(list);
   }
 
   IconData _albumIcon(Map playingAlbum, dynamic album, String type) {
@@ -177,28 +187,28 @@ class _DetailedSearchResultState extends State<DetailedSearchResult>
                       padding: EdgeInsets.only(top: 20, left: 25, right: 25),
                       itemCount: widget.list.length,
                       itemBuilder: (BuildContext context, int index) {
-                        return MusicListItem(
-                          title: widget.list[index].title,
-                          albumArt: widget.list[index].albumArtwork == null
-                              ? getAlbumArtPath(widget.list[index].albumId)
-                              : widget.list[index].albumArtwork,
-                          artist: widget.list[index].artist,
-                          song: widget.list[index],
-                          songIndex: index,
-                          textAreaLength:
-                              MediaQuery.of(context).size.width - 175,
-                          thePlaying: currentMediaItem?.id ==
-                              widget.list[index].filePath,
-                          onClick: () async {
-                            /*  await Provider.of<MusicService>(context,
-                                          listen: false)
-                                      .updateBackgroundQueue(widget.list);
-
-                                  AudioService.skipToQueueItem(
-                                      widget.list[index].filePath); */
-                          },
-                          subtitleTextColor: Colors.black,
-                          titleTextColor: Colors.black,
+                        return StreamBuilder<Object>(
+                          stream: AudioService.currentMediaItemStream,
+                          builder: (context, snapshot) {
+                             MediaItem currentMediaItem = snapshot?.data;
+                              final song =  widget.list[index];
+                            return MusicListItem(
+                              title: widget.list[index].title,
+                              albumArt: getAlbumArtPath(widget.list[index].albumId),
+                              artist: widget.list[index].artist,
+                              song: widget.list[index],
+                              songIndex: index,
+                              textAreaLength:
+                                  MediaQuery.of(context).size.width - 175,
+                             thePlaying: kIfSongIsPlaying(
+                                    currentMediaItem, song.filePath),
+                              onClick: () async {
+                                playSong(widget.list, index);
+                              },
+                              subtitleTextColor: Colors.black,
+                              titleTextColor: Colors.black,
+                            );
+                          }
                         );
                       },
                     ),
@@ -224,15 +234,15 @@ class _DetailedSearchResultState extends State<DetailedSearchResult>
                             result =
                                 await getSongFromArtist(widget.list[index].id);
                           } else if (widget.type == 'playlist') {
-                            result =
-                                await getSongFromPlaylist(widget.list[index]);
+                            result = await getSongFromPlaylist(
+                                widget.list[index].memberIds);
                           }
                           // var result =
                           //     await getSongFromAlbum(widget.list[index].id);
 
                           // Provider.of<MusicService>(context)
                           //     .setCurrentSongList(result);
-                          print(index);
+
                           Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
                             return TemplatePage(
@@ -242,9 +252,8 @@ class _DetailedSearchResultState extends State<DetailedSearchResult>
                                   : widget.type == 'album'
                                       ? widget.list[index].title
                                       : widget.list[index].name,
-                              artWork: widget.list[index].albumArt == null
-                                  ? getAlbumArtPath(widget.list[index].id)
-                                  : widget.list[index].albumArt,
+                              artWork: getAlbumArt(widget.list[index],
+                                  template: true),
                               albumIndex: index,
                               typeOfTemplate: widget.type,
                               toTemplateList: widget.list,
@@ -259,9 +268,7 @@ class _DetailedSearchResultState extends State<DetailedSearchResult>
                                   ? widget.list[index].name
                                   : widget.list[index].title,
                           toAlbumItemList: widget.list,
-                          albumArtwork: widget.list[index].albumArt == null
-                              ? getAlbumArtPath(widget.list[index].id)
-                              : widget.list[index].albumArt,
+                          albumArtwork: getAlbumArt(widget.list[index]),
                           typeOfAlbumItem: widget.type,
                           item: widget.list[index],
                           index: index,
@@ -277,5 +284,19 @@ class _DetailedSearchResultState extends State<DetailedSearchResult>
         ),
       ),
     );
+  }
+
+  getAlbumArt(item, {template}) {
+    if (widget.type == 'album' && item.albumArt == null) {
+      return getAlbumArtPath(item.id);
+    } else if (widget.type == 'album' && item.albumArt != null) {
+      return item.albumArt;
+    } else if (widget.type == 'artist' && item.artistArtPath == null) {
+      return getArtistArtPath(item.id);
+    } else if (widget.type == 'album' && item.artistArtPath != null) {
+      return item.artistArtPath;
+    } else if (widget.type == 'playlist' && template != true) {
+      return '';
+    }
   }
 }

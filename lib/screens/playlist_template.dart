@@ -68,6 +68,7 @@ class _PlaylistTemplatePageState extends State<PlaylistTemplatePage>
     await AudioService.updateMediaItem(temp);
     var list =
         await kSongInfoListToMediaItemList(song, currentSongIndex: index);
+    list[index] = temp;
     await AudioService.updateQueue(list);
   }
 

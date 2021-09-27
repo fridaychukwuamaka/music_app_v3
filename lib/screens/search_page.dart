@@ -5,6 +5,7 @@ import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:music_app_v3/constant.dart';
 import 'package:music_app_v3/models/playlist_data.dart';
 import 'package:music_app_v3/screens/detailed_search_result.dart';
+import 'package:music_app_v3/screens/template.dart';
 import 'package:music_app_v3/utils/utils.dart';
 import 'package:music_app_v3/widgets/album_item.dart';
 import 'package:music_app_v3/widgets/music_list_item.dart';
@@ -12,7 +13,7 @@ import 'package:music_app_v3/widgets/music_list_item.dart';
 // final HiveDb hiveDb = HiveDb();
 
 class SearchPage extends SearchDelegate {
-   Future searchFuture;
+  Future searchFuture;
   @override
   List<Widget> buildActions(BuildContext context) {
     return [
@@ -40,6 +41,26 @@ class SearchPage extends SearchDelegate {
   Future<List<SongInfo>> getSongFromAlbum(String albumId) async {
     List<SongInfo> songs = await flutterAudioQuery.getSongsFromAlbum(
         albumId: albumId, sortType: SongSortType.SMALLER_TRACK_NUMBER);
+    return songs;
+  }
+
+   Future<List<SongInfo>> getSongFromPlaylist(List<String> memberIds) async {
+
+
+    List<SongInfo> songs = await flutterAudioQuery.getSongsById(
+      ids: memberIds,
+      sortType: SongSortType.CURRENT_IDs_ORDER,
+    );
+
+    return songs;
+  }
+
+  ///This function get list of songs from an album
+  Future<List<SongInfo>> getSongFromArtist(String artistId) async {
+    List<SongInfo> songs = await flutterAudioQuery.getSongsFromArtist(
+      artistId: artistId,
+      sortType: SongSortType.SMALLER_TRACK_NUMBER,
+    );
     return songs;
   }
 
@@ -87,8 +108,6 @@ class SearchPage extends SearchDelegate {
           final List<AlbumInfo> albums = snapshot.data['album'];
           final List<ArtistInfo> artist = snapshot.data['artist'];
           final List<PlaylistData> playlist = snapshot.data['playlist'];
-
-          print(playlist);
 
           return ListView(
             padding: EdgeInsets.all(30),
@@ -193,19 +212,40 @@ class SearchPage extends SearchDelegate {
                   mainAxisSpacing: 25,
                 ),
                 itemCount: albums.length > 4 ? 4 : albums.length,
-                itemBuilder: (context, index) => AlbumItem(
-                  playButton: true,
-                  borderRadius: BorderRadius.circular(5),
-                  typeOfAlbumItem: 'album',
-                  icon: Icons.play_arrow,
-                  title: albums[index].title,
-                  albumArtwork: albums[index].albumArt == null
-                      ? getAlbumArtPath(albums[index].id)
-                      : albums[index].albumArt,
-                  item: albums[index],
-                  onPressed: () {
-                    playSong(albums[index].id);
+                itemBuilder: (context, index) => GestureDetector(
+                  onTap: () async {
+                    List<SongInfo> songs =
+                        await getSongFromAlbum(albums[index].id);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) => TemplatePage(
+                          albumId: albums[index].id,
+                          typeOfTemplate: 'album',
+                          songList: songs,
+                          artWork: albums[index].albumArt == null
+                              ? getAlbumArtPath(albums[index].id)
+                              : albums[index].albumArt,
+                          title: albums[index].artist,
+                          albumIndex: index,
+                        ),
+                      ),
+                    );
                   },
+                  child: AlbumItem(
+                    playButton: true,
+                    borderRadius: BorderRadius.circular(5),
+                    typeOfAlbumItem: 'album',
+                    icon: Icons.play_arrow,
+                    title: albums[index].title,
+                    albumArtwork: albums[index].albumArt == null
+                        ? getAlbumArtPath(albums[index].id)
+                        : albums[index].albumArt,
+                    item: albums[index],
+                    onPressed: () {
+                      playSong(albums[index].id);
+                    },
+                  ),
                 ),
               ),
               SizedBox(
@@ -266,29 +306,68 @@ class SearchPage extends SearchDelegate {
                   mainAxisSpacing: 25,
                 ),
                 itemCount: artist.length > 4 ? 4 : artist.length,
-                itemBuilder: (context, index) => AlbumItem(
-                  playButton: true,
-                  borderRadius: BorderRadius.circular(5),
-                  typeOfAlbumItem: 'artist',
-                  icon: Icons.play_arrow,
-                  title: artist[index].name,
-                  albumArtwork: artist[index].artistArtPath == null
-                      ? getArtistArtPath(artist[index].id)
-                      : artist[index].artistArtPath,
-                  item: artist[index],
+                itemBuilder: (context, index) => GestureDetector(
+                  onTap: () async {
+                    List<SongInfo> songs =
+                        await getSongFromArtist(artist[index].id);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) => TemplatePage(
+                          albumId: artist[index].id,
+                          typeOfTemplate: 'album',
+                          songList: songs,
+                          artWork: artist[index].artistArtPath == null
+                              ? getArtistArtPath(artist[index].id)
+                              : artist[index].artistArtPath,
+                          title: artist[index].name,
+                          albumIndex: index,
+                        ),
+                      ),
+                    );
+                  },
+                  child: AlbumItem(
+                    playButton: true,
+                    borderRadius: BorderRadius.circular(5),
+                    typeOfAlbumItem: 'artist',
+                    icon: Icons.play_arrow,
+                    title: artist[index].name,
+                    albumArtwork: artist[index].artistArtPath == null
+                        ? getArtistArtPath(artist[index].id)
+                        : artist[index].artistArtPath,
+                    item: artist[index],
+                  ),
                 ),
+              ),
+              SizedBox(
+                height: 20,
               ),
               artist.length > 5
                   ? Align(
                       alignment: Alignment.centerRight,
-                      child: Text(
-                        '${artist.length - 4} more',
-                        textScaleFactor: 0.9,
-                        style: Theme.of(context).textTheme.button.copyWith(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (BuildContext context) =>
+                                  DetailedSearchResult(
+                                title: 'Artist',
+                                type: 'artist',
+                                list: artist,
+                              ),
                             ),
+                          );
+                        },
+                        child: Text(
+                          '${artist.length - 4} more',
+                          textScaleFactor: 0.9,
+                          style: Theme.of(context).textTheme.button.copyWith(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                              ),
+                        ),
                       ),
                     )
                   : SizedBox.shrink(),
@@ -319,26 +398,64 @@ class SearchPage extends SearchDelegate {
                   mainAxisSpacing: 25,
                 ),
                 itemCount: playlist.length > 4 ? 4 : playlist.length,
-                itemBuilder: (context, index) => AlbumItem(
-                  playButton: true,
-                  borderRadius: BorderRadius.circular(5),
-                  typeOfAlbumItem: 'artist',
-                  icon: Icons.play_arrow,
-                  title: playlist[index].name,
-                  albumArtwork: '',
-                  item: playlist[index],
+                itemBuilder: (context, index) => GestureDetector(
+                  onTap: () async {
+                    List<SongInfo> songs =
+                        await getSongFromPlaylist(playlist[index].memberIds);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) => TemplatePage(
+                          albumId: playlist[index].id,
+                          typeOfTemplate: 'album',
+                          songList: songs,
+                          artWork: null,
+                          title: playlist[index].name,
+                          albumIndex: index,
+                        ),
+                      ),
+                    );
+                  
+                  },
+                  child: AlbumItem(
+                    playButton: true,
+                    borderRadius: BorderRadius.circular(5),
+                    typeOfAlbumItem: 'artist',
+                    icon: Icons.play_arrow,
+                    title: playlist[index].name,
+                    albumArtwork: '',
+                    item: playlist[index],
+                  ),
                 ),
+              ),
+              SizedBox(
+                height: 20,
               ),
               playlist.length > 5
                   ? Align(
                       alignment: Alignment.centerRight,
-                      child: Text(
-                        '${playlist.length - 4} more',
-                        textScaleFactor: 0.9,
-                        style: Theme.of(context).textTheme.button.copyWith(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (BuildContext context) =>
+                                  DetailedSearchResult(
+                                title: 'Playlist',
+                                type: 'playlist',
+                                list: playlist,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          '${playlist.length - 4} more',
+                          textScaleFactor: 0.9,
+                          style: Theme.of(context).textTheme.button.copyWith(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black),
+                        ),
                       ),
                     )
                   : SizedBox.shrink(),

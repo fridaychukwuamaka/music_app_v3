@@ -317,7 +317,8 @@ class MusicListItem extends StatelessWidget {
             songList: songList,
             title: song.title,
             albumIndex: 0,
-            artWork: '',
+            
+            artWork: getAlbumArtPath(song.albumId),
           );
         },
       ),

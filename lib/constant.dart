@@ -54,8 +54,8 @@ Future<MediaItem> kSongInfoToMediaItem(song, int index) async {
     title: song.title,
     artist: song.artist,
     artUri: song.albumArtwork == null
-        ? Uri.parse(getAlbumArtPath(song.albumId))
-        : Uri.parse(song.albumArtwork),
+        ? Uri.file(getAlbumArtPath(song.albumId))
+        : Uri.file(song.albumArtwork),
     duration: Duration(milliseconds: int.parse(song.duration)),
     extras: {
       'albumId': song.albumId,
@@ -81,8 +81,8 @@ Future<List<MediaItem>> kSongInfoListToMediaItemList(
       title: e.title,
       artist: e.artist,
        artUri: e.albumArtwork == null
-          ? Uri.parse(getAlbumArtPath(e.albumId))
-          : Uri.parse(e.albumArtwork),
+          ? Uri.file(getAlbumArtPath(e.albumId))
+          : Uri.file(e.albumArtwork),
       duration: Duration(milliseconds: int.parse(e.duration)),
       extras: {
         'albumId': e.albumId,
