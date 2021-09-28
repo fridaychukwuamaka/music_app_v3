@@ -6,6 +6,7 @@ import 'package:device_info/device_info.dart';
 import 'package:music_app_v3/models/playlist_data.dart';
 import 'package:music_app_v3/screens/playing.dart';
 import 'package:music_app_v3/screens/setting.dart';
+import 'package:music_app_v3/services/music_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:audio_service/audio_service.dart';
@@ -23,6 +24,7 @@ import 'package:music_app_v3/services/backgroud_task.dart';
 import 'package:music_app_v3/utils/utils.dart';
 import 'package:music_app_v3/widgets/music_app_bar.dart';
 import 'package:music_app_v3/widgets/music_bottom_nav_bar.dart';
+import 'package:provider/provider.dart';
 import '../constant.dart';
 
 //TODO: 3. HEADSET BUTTON WHEN APP IS ON
@@ -48,34 +50,11 @@ class _MyHomePageState extends State<MyHomePage>
   void initState() {
     _tabController = TabController(length: 4, vsync: this, initialIndex: 0);
     _pageController = PageController(initialPage: 0);
-    _allItemFuture = getAllItems();
-    createFavoritePlaylist();
     onBackground();
     setRunningStream();
+    createFavoritePlaylist();
+    _allItemFuture = getAllItems();
     super.initState();
-  }
-
-  notifier() {
-    AudioService.browseMediaChildren;
-    AudioService.setBrowseMediaParent();
-    notificationStream =
-        AudioService.notificationClickEventStream.listen((event) async {
-      print(event);
-      print('event');
-      print(AudioService.notificationClickEvent);
-      /*  if (event) {
-      notification = event;
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return PlayingPage();
-            },
-          ),
-        );
-        notification = false;
-      } */
-    });
   }
 
   Future createFavoritePlaylist() async {
@@ -133,10 +112,11 @@ class _MyHomePageState extends State<MyHomePage>
       'playlist': await playlistService.getPlaylist(),
     };
 
-    return result;
+    Provider.of<MusicService>(context, listen: false).updateItems(result);
+    return Provider.of<MusicService>(context, listen: false).allItem;
   }
 
-  Future<void> initNeccesarry() async {
+  initNeccesarry() async {
     //await onBackground();
 
     var currentMediaItem;
@@ -194,7 +174,7 @@ class _MyHomePageState extends State<MyHomePage>
         setupLoop = true;
       }
       if (event && AudioService.currentMediaItem == null) {
-        await initNeccesarry();
+        initNeccesarry();
       }
     });
   }
@@ -327,7 +307,8 @@ class _MyHomePageState extends State<MyHomePage>
           floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling, */
       /* floatingActionButton: FloatingActionButton(
         onPressed: () async {
-        
+          var val = json.decode(Hive.box('lastSong').get('lastSong'));
+          print(val);
         },
         child: Icon(Icons.face),
       ), */
@@ -450,7 +431,7 @@ class _MyHomePageState extends State<MyHomePage>
           stream: AudioService.currentMediaItemStream,
           builder: (context, snapshot) {
             final MediaItem currentMediaItem = snapshot?.data;
-
+          
             if (currentMediaItem != null) {
               return MusicBottomNavBar(
                 currentAlbumArt: currentMediaItem?.artUri?.toFilePath() ?? '',

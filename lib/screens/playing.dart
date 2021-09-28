@@ -68,12 +68,13 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                   stream: AudioService.currentMediaItemStream,
                   initialData: AudioService.currentMediaItem,
                   builder: (context, snapshot) {
+                    final Uri currentArtUri = snapshot?.data?.artUri;
                     print(snapshot?.data?.artUri);
                     return Positioned(
                       top: 0,
-                      child: snapshot.hasData && snapshot?.data?.artUri != null
+                      child: snapshot.hasData &&  File(currentArtUri.path).existsSync() && File(currentArtUri.path).readAsBytesSync().isNotEmpty 
                           ? Image.file(
-                              File(snapshot?.data?.artUri?.toFilePath()),
+                              File(currentArtUri?.toFilePath()),
                               height: MediaQuery.of(context).size.height,
                               width: MediaQuery.of(context).size.width,
                               fit: BoxFit.cover,
@@ -92,6 +93,7 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                               )),
                     );
                   }),
+                  
               Container(
                 decoration: BoxDecoration(color: Color.fromRGBO(0, 0, 0, 0.61)),
               ),
@@ -144,10 +146,10 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                 right: 0,
                 child: Column(
                   children: <Widget>[
-                   Column(
+                    Column(
                       children: [
                         MusicSlider(
-                          /* onChanged: (val) {
+                            /* onChanged: (val) {
                             changing = true;
                             if (sliderVal != val) {
                               sliderVal = val;
@@ -168,7 +170,7 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                               },
                             );
                           }, */
-                       /*    sliderVal: sliderVal,
+                            /*    sliderVal: sliderVal,
                           changing: changing,
                           favorite: favorite,
                           onFavorite: () async {},
@@ -177,7 +179,7 @@ class _PlayingPageState extends State<PlayingPage> with WidgetsBindingObserver {
                           currentMediaItem: currentMediaItem,
                           position: position,
                           playbackState: playbackState, */
-                        ),
+                            ),
                       ],
                     ),
                     Padding(

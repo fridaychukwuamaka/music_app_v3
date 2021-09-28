@@ -7,6 +7,7 @@ import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:hive/hive.dart';
 import 'package:music_app_v3/constant.dart';
 import 'package:music_app_v3/models/playlist_data.dart';
+import 'package:music_app_v3/services/playlist.dart';
 import 'package:music_app_v3/utils/utils.dart';
 import 'package:music_app_v3/widgets/music_playlist_modal.dart';
 
@@ -278,6 +279,12 @@ class _AlbumItemState extends State<AlbumItem> {
                     break;
                   case 2:
                     addToQueue();
+                    break;
+                  case 4:
+                    if (widget.item.name.toLowerCase() != 'liked') {
+                      print('object');
+                      await Playlist().removePlaylist(widget.item.name);
+                    }
                     break;
                   case 3:
                     var songs = await getSongFromItem() as List<SongInfo>;

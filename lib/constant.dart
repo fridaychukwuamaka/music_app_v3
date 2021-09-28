@@ -48,6 +48,8 @@ extension CapExtension on String {
 Future<MediaItem> kSongInfoToMediaItem(song, int index) async {
   final String id = uuid.v4();
 
+  print(song.albumArtwork);
+
   MediaItem mediaItem = MediaItem(
     id: id,
     album: song.album,
@@ -80,7 +82,7 @@ Future<List<MediaItem>> kSongInfoListToMediaItemList(
       album: e.album,
       title: e.title,
       artist: e.artist,
-       artUri: e.albumArtwork == null
+      artUri: e.albumArtwork == null
           ? Uri.file(getAlbumArtPath(e.albumId))
           : Uri.file(e.albumArtwork),
       duration: Duration(milliseconds: int.parse(e.duration)),

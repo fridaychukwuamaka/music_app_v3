@@ -56,7 +56,10 @@ class _MusicSliderState extends State<MusicSlider> {
 
   @override
   void dispose() {
-    positionStream.cancel();
+    if (positionStream != null) {
+      positionStream.cancel();
+      positionStream = null;
+    }
     super.dispose();
   }
 
@@ -86,7 +89,7 @@ class _MusicSliderState extends State<MusicSlider> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text(
-                            currentMediaItem?.title,
+                            currentMediaItem?.title ?? '',
                             textScaleFactor: 0.85,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

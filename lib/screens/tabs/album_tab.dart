@@ -39,7 +39,7 @@ class _AlbumTabState extends State<AlbumTab> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.albums.isNotEmpty) {
+    if (widget.albums != null) {
       return GridView.builder(
           itemCount: widget.albums.length,
           padding: EdgeInsets.only(left: 30, right: 30, top: 25, bottom: 25),
@@ -63,7 +63,9 @@ class _AlbumTabState extends State<AlbumTab> {
                         songList: songs,
                         title: widget.albums[index].title,
                         albumIndex: index,
-                        artWork: getAlbumArtPath(widget.albums[index].id),
+                        artWork: widget.albums[index].albumArt == null
+                            ? getAlbumArtPath(widget.albums[index].id)
+                            : widget.albums[index].albumArt,
                       );
                     },
                   ),
@@ -94,6 +96,16 @@ class _AlbumTabState extends State<AlbumTab> {
                   }),
             );
           });
+    } else if (widget.albums != null && widget.albums.isEmpty) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'No album Found',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ],
+      );
     } else {
       return Center(
         child: CircularProgressIndicator(

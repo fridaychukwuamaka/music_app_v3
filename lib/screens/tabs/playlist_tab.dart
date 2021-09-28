@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:music_app_v3/models/playlist_data.dart';
 import 'package:music_app_v3/screens/playlist_template.dart';
+import 'package:music_app_v3/services/music_service.dart';
 import 'package:music_app_v3/services/playlist.dart';
 import 'package:music_app_v3/widgets/album_item.dart';
+import 'package:provider/provider.dart';
 import '../../constant.dart';
 
 Playlist playlistService = Playlist();
@@ -18,19 +20,27 @@ class PlaylistTab extends StatefulWidget {
   final List playlist;
 }
 
+
 class _PlaylistTabState extends State<PlaylistTab> {
- 
+  List playlist;
 
   void initState() {
+    print('object');
+    playlist = Provider.of<MusicService>(context, listen: false).allItem['playlist'];
+    getPlaylist();
     super.initState();
   }
 
-  ///This function get the artist on the device
- 
-  
+  getPlaylist() async {
+    var val = await playlistService.getPlaylist();
+    setState(() {
+      playlist = val;
+    });
+  }
+
   ///This function get list of songs from a playlist
   Future<List<SongInfo>> getSongFromPlaylist(String playlistId) async {
-    PlaylistData temp = widget.playlist.singleWhere((e) => e.id == playlistId);
+    PlaylistData temp = playlist.singleWhere((e) => e.id == playlistId);
     var memberIds = temp.memberIds;
     if (memberIds.isEmpty) return [];
 
@@ -56,9 +66,9 @@ class _PlaylistTabState extends State<PlaylistTab> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.playlist.isNotEmpty) {
+    if (widget.playlist != null) {
       return GridView.builder(
-          itemCount: widget.playlist.length,
+          itemCount: playlist.length,
           padding: EdgeInsets.only(left: 30, right: 30, top: 25, bottom: 25),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             childAspectRatio: 0.75,
@@ -69,14 +79,14 @@ class _PlaylistTabState extends State<PlaylistTab> {
           itemBuilder: (context, index) {
             return GestureDetector(
               onTap: () async {
-               final  List<SongInfo> songs =
-                    await getSongFromPlaylist(widget.playlist[index].id);
+                final List<SongInfo> songs =
+                    await getSongFromPlaylist(playlist[index].id);
 
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (BuildContext context) {
                       return PlaylistTemplatePage(
-                        playlist: widget.playlist[index],
+                        playlist: playlist[index],
                       );
                     },
                   ),
@@ -84,18 +94,28 @@ class _PlaylistTabState extends State<PlaylistTab> {
               },
               child: AlbumItem(
                 playButton: true,
-                item: widget.playlist[index],
+                item: playlist[index],
                 typeOfAlbumItem: 'playlist',
                 onPressed: () async {
-                  playSong(widget.playlist[index].id);
+                  playSong(playlist[index].id);
                 },
                 icon: Icons.play_arrow,
-                title: widget.playlist[index].name,
+                title:playlist[index].name,
                 albumArtwork: '',
                 borderRadius: BorderRadius.circular(5),
               ),
             );
           });
+    } else if (playlist != null && playlist.isEmpty) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'No playlist Found',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ],
+      );
     } else {
       return Center(
         child: CircularProgressIndicator(

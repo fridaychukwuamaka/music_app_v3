@@ -3,7 +3,9 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:hive/hive.dart';
 import 'package:music_app_v3/models/playlist_data.dart';
+import 'package:music_app_v3/services/music_service.dart';
 import 'package:music_app_v3/services/playlist.dart';
+import 'package:provider/provider.dart';
 
 final FlutterAudioQuery flutterAudioQuery = FlutterAudioQuery();
 
@@ -35,8 +37,8 @@ Future<void> setLoopMode() async {
   }
 }
 
-Future<List<SongInfo>> searchSongs({String query}) async {
-  List<SongInfo> songs = await flutterAudioQuery.getSongs();
+Future<List<SongInfo>> searchSongs({String query, List<SongInfo> item}) async {
+  List<SongInfo> songs = item;
   List<SongInfo> searchedSongs = [];
 
   searchedSongs = songs
@@ -45,8 +47,9 @@ Future<List<SongInfo>> searchSongs({String query}) async {
   return searchedSongs;
 }
 
-Future<List<AlbumInfo>> searchAlbums({String query}) async {
-  List<AlbumInfo> albums = await flutterAudioQuery.getAlbums();
+Future<List<AlbumInfo>> searchAlbums(
+    {String query, List<AlbumInfo> item}) async {
+  List<AlbumInfo> albums = item;
   List<AlbumInfo> searchedAlbums = [];
 
   searchedAlbums = albums
@@ -56,15 +59,20 @@ Future<List<AlbumInfo>> searchAlbums({String query}) async {
   return searchedAlbums;
 }
 
-Future<List<PlaylistData>> searchPlayList({String query}) async {
-  List<PlaylistData> playLists = await Playlist().getPlaylist();
+Future<List<PlaylistData>> searchPlayList(
+    {String query, List<PlaylistData> item}) async {
+  List<PlaylistData> playLists = item;
   List<PlaylistData> searchedPlaylists = playLists
-      .where((e) => e.name.toLowerCase().contains(query.trim().toLowerCase())).toList();
+      .where((e) => e.name.toLowerCase().contains(query.trim().toLowerCase()))
+      .toList();
   return searchedPlaylists;
 }
 
-Future<List<ArtistInfo>> searchArtist({String query}) async {
-  List<ArtistInfo> albums = await flutterAudioQuery.getArtists();
+Future<List<ArtistInfo>> searchArtist({
+  String query,
+  List<ArtistInfo> item,
+}) async {
+  List<ArtistInfo> albums = item;
   List<ArtistInfo> searchedArtisit = [];
   searchedArtisit = albums
       .where((e) => e.name.toLowerCase().contains(query.trim().toLowerCase()))
@@ -72,11 +80,15 @@ Future<List<ArtistInfo>> searchArtist({String query}) async {
   return searchedArtisit;
 }
 
-Future<Map<String, dynamic>> searchAppForSong(query) async {
-  var song = await searchSongs(query: query);
-  var album = await searchAlbums(query: query);
-  var artist = await searchArtist(query: query);
-  var playlist = await searchPlayList(query: query);
+Future<Map<String, dynamic>> searchAppForSong(query, context) async {
+  Map<String, dynamic> items =
+      Provider.of<MusicService>(context, listen: false).allItem;
+
+  var song = await searchSongs(query: query, item: items['songs']);
+  var album = await searchAlbums(query: query, item: items['album']);
+  var artist = await searchArtist(query: query, item: items['artist']);
+  var playlist = await searchPlayList(query: query, item: items['playlist']);
+
 
   Map<String, dynamic> result = {
     'songs': song,

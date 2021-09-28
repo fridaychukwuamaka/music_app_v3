@@ -161,7 +161,8 @@ class _TemplatePageState extends State<TemplatePage>
                         height: 280,
                         decoration: BoxDecoration(
                           image: DecorationImage(
-                            image: artWork != null
+                            image: File(artWork).existsSync() &&
+                                    File(artWork).readAsBytesSync().isNotEmpty  
                                 ? FileImage(File(artWork))
                                 : AssetImage(typeOfTemplate == 'album'
                                     ? 'assets/images/adrian-korte-5gn2soeAc40-unsplash.jpg'

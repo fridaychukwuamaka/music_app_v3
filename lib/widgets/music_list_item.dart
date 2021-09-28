@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -86,7 +85,8 @@ class MusicListItem extends StatelessWidget {
                     color: color == null ? Colors.black : color,
                     borderRadius: BorderRadius.circular(3),
                   ),
-                  child: albumArt != null
+                  child: File(albumArt).existsSync() &&
+                          File(albumArt).readAsBytesSync().isNotEmpty
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(3),
                           child: Image.file(
@@ -198,6 +198,14 @@ class MusicListItem extends StatelessWidget {
                           break;
                         case 2:
                           showAlbum(context);
+                          break;
+                        case 6:
+                       /*    print(song.filePath);
+                        File(song.filePath).writeAsBytesSync([]); */
+                        
+
+                        
+                          print(File(song.filePath));
                           break;
                         case 5:
                           showModalBottomSheet(
@@ -317,7 +325,6 @@ class MusicListItem extends StatelessWidget {
             songList: songList,
             title: song.title,
             albumIndex: 0,
-            
             artWork: getAlbumArtPath(song.albumId),
           );
         },

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive/hive.dart';
@@ -26,7 +24,6 @@ Future<void> initHive() async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await initHive();
 
   runApp(

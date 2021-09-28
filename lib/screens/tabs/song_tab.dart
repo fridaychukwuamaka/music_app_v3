@@ -32,7 +32,7 @@ class _SongTabState extends State<SongTab> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.songs.isNotEmpty) {
+    if (widget.songs != null) {
       return ListView.builder(
         itemCount: widget.songs.length,
         padding: EdgeInsets.only(left: 30, right: 15, top: 10, bottom: 10),
@@ -64,6 +64,16 @@ class _SongTabState extends State<SongTab> {
                 );
               });
         },
+      );
+    } else if (widget.songs != null && widget.songs.isEmpty) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'No songs Found',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ],
       );
     } else {
       return Center(

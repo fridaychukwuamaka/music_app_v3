@@ -37,7 +37,7 @@ class _ArtistTabState extends State<ArtistTab> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.artist.isNotEmpty) {
+    if (widget.artist != null) {
       return GridView.builder(
           itemCount: widget.artist.length,
           padding: EdgeInsets.only(left: 30, right: 30, top: 25, bottom: 25),
@@ -61,7 +61,9 @@ class _ArtistTabState extends State<ArtistTab> {
                         songList: songs,
                         title: widget.artist[index].name,
                         albumIndex: index,
-                        artWork: getArtistArtPath(widget.artist[index].id),
+                        artWork: widget.artist[index].artistArtPath == null
+                            ? getArtistArtPath(widget.artist[index].id)
+                            : widget.artist[index].artistArtPath,
                       );
                     },
                   ),
@@ -83,6 +85,16 @@ class _ArtistTabState extends State<ArtistTab> {
               ),
             );
           });
+    } else if (widget.artist != null && widget.artist.isEmpty) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'No artist Found',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ],
+      );
     } else {
       return Center(
         child: CircularProgressIndicator(

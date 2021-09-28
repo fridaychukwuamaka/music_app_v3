@@ -53,7 +53,8 @@ class MusicBottomNavBar extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-              currentAlbumArt != null  ? Container(
+             File(currentAlbumArt).existsSync() && File(currentAlbumArt).readAsBytesSync().isNotEmpty  
+                    ? Container(
                         height: 45,
                         width: 42.5,
                         decoration: BoxDecoration(

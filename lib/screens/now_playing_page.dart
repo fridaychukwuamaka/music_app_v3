@@ -63,9 +63,13 @@ class _NowplayingMiniState extends State<NowplayingMini> {
               stream: AudioService.currentMediaItemStream,
               initialData: AudioService.currentMediaItem,
               builder: (context, snapshot) {
-                 return Positioned(
+                final Uri currentArtUri = snapshot?.data?.artUri;
+                print(snapshot?.data?.artUri);
+                return Positioned(
                   top: 0,
-                  child: snapshot.hasData && snapshot?.data?.artUri != null
+                  child: snapshot.hasData &&
+                          File(currentArtUri.path).existsSync() &&
+                          File(currentArtUri.path).readAsBytesSync().isNotEmpty
                       ? Image.file(
                           File(snapshot?.data?.artUri?.toFilePath()),
                           height: MediaQuery.of(context).size.height,
